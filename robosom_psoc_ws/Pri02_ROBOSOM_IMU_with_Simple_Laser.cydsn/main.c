@@ -11,6 +11,7 @@
 */
 #include "project.h"
 #include "stdio.h"
+#include "usb_comm.h"
 
 // Include BMI160 Library and PSOC HAL
 #include "../Library/BMI160/bmi160.h"
@@ -41,6 +42,24 @@ uint16 read_count;
 uint8 buffer_read[USBUART_BUFFER_SIZE];
 uint8 serial_input = 0;
 
+/* Laser/Shutter specific vars */
+#define PWM_LASER_OFF (0)
+
+enum shutter_laser_state {
+    LSR_DISABLE = 0,
+    LSR_ENABLE = 1
+} laser_state;
+
+enum shutter_active_state {
+    NO_FRAME = 0,
+    NEW_FRAME = 1
+} shutter_state;
+
+uint8_t frame_status = NO_FRAME;
+uint8_t light_status = LSR_DISABLE;
+uint8_t pulse_enabled = 1;
+uint8_t pwm_laser_val = 1;
+
 // Testing Function
 void print_imu_via_usbuart(void);
 
@@ -49,19 +68,21 @@ uint32 sys_clock_cur_ms = 0;
 float sys_clock_cur_us_in_ms = 0;
 void sys_clock_ms_callback(void); // 1ms callback interrupt function
 
+// Interrupt handlers for the ximea camera
+void Isr_shutter_handler(void); // Shutter Active interrupt handler
+void Isr_trigger_handler(void); // Trigger Timing interrupt handler
 
 int main(void)
 {
     uint8_t led_test = 0;
-    uint8_t laser_val = 0;
     buffer[0] = 1;
     
-    CyGlobalIntEnable; /* Enable global interrupts. */
+    /* Sets up the GPIO interrupt and enables it */
+    isr_EXPOSURE_ACT_StartEx(Isr_shutter_handler);
     
     // USBUART Init
-    USBUART_Start(USBFS_DEVICE, USBUART_5V_OPERATION);
+    init_usb_comm();
     USBUART_CDC_Init();
-    
     // I2C Init
     I2C_1_Start();
     
@@ -72,7 +93,6 @@ int main(void)
     
     // PWM Block Init
     PWM_LED_Start();
-    
     PWM_LASER_Start();
    
     /* Turn off LEDs */
@@ -80,45 +100,53 @@ int main(void)
     Led_Green_Write(0);
     Led_Blue_Write(0);
     Led_Key_Write(1);
+    CyGlobalIntEnable; /* Enable global interrupts. */
     
-    CyDelay(100);
-    
+    CyDelay(10000);
+    /* For initial testing, establish USB communication before attempting to send first trigger frame */
+    while (0u == USBUART_CDCIsReady())
+    {
+    }
     // Start system 1ms tick
     CySysTickStart();
     CySysTickSetCallback(0, sys_clock_ms_callback);
     CySysTickEnableInterrupt();
-       
+    
+    
+    // Trigger first Ximea trigger pulse - Might want to link this to a button for manual triggering.
+    Trig_Pulser_Start();
+    Trigger_Reg_Write(1);
+    
+
     for(;;)
     {
+        while (frame_status == NEW_FRAME) 
+        {
+            frame_status = NO_FRAME;
+            imu_bmi160_read_acc_gyo();
+            //imu_bmi160_read_steps();
+            print_imu_via_usbuart();
+        }
 
-        imu_bmi160_read_acc_gyo();
-        imu_bmi160_read_steps();
-        USBUART_user_check_init();
-        //USBUART_user_echo();
-        read_count = USBUART_user_check_read();
-        //serial_input = USBUART_GetChar();
-        serial_input = buffer_read[0];
+        if (USBUART_GetCount() > 0) 
+        {
+            serial_input = usb_get_char();
         
-        laser_val = serial_input & 0b01111111; // Mask for last 7 bits
-        PWM_LASER_WriteCompare(laser_val);
-        //PWM_LASER_WriteCompare(1);
+            pwm_laser_val = serial_input & 0b01111111; // Mask for last 7 bits
+            pulse_enabled = serial_input & 0b10000000; // Mask for first bit. - Just disables pulse, can change behavior to disable/enable Laser.
+        }
         
-        
-        print_imu_via_usbuart();
         
         led_test++;
         
-        Led_Red_Write((led_test >> 0) & 0x01);
+        //Led_Red_Write((led_test >> 0) & 0x01);
         Led_Green_Write((led_test >> 1) & 0x01);
         Led_Blue_Write((led_test >> 2) & 0x01);   
 
         if (Led_Key_Read() == 0)
         {
             led_test = 0;
-        }
-          
-        
-        CyDelay(10);       
+        }    
     }
 }
 
@@ -221,80 +249,6 @@ int8_t imu_bmi160_read_acc_gyo(void)
     return rslt;
 }
 
-/// USBUART Routin
-void USBUART_user_check_init(void) {
-    /* Host can send double SET_INTERFACE request. */
-    if (0u != USBUART_IsConfigurationChanged())
-    {
-        /* Initialize IN endpoints when device is configured. */
-        if (0u != USBUART_GetConfiguration())
-        {
-            /* Enumeration is done, enable OUT endpoint to receive data 
-             * from host. */
-            USBUART_CDC_Init();
-        }
-    }
-}
-
-void USBUART_user_echo(void) {
-    /* Service USB CDC when device is configured. */
-    if (0u != USBUART_GetConfiguration())
-    {
-        /* Check for input data from host. */
-        if (0u != USBUART_DataIsReady())
-        {
-            /* Read received data and re-enable OUT endpoint. */
-            count = USBUART_GetAll(buffer);
-
-            if (0u != count)
-            {
-                /* Wait until component is ready to send data to host. */
-                while (0u == USBUART_CDCIsReady())
-                {
-                }
-
-                /* Send data back to host. */
-                USBUART_PutData(buffer, count);
-
-                /* If the last sent packet is exactly the maximum packet 
-                *  size, it is followed by a zero-length packet to assure
-                *  that the end of the segment is properly identified by 
-                *  the terminal.
-                */
-                if (USBUART_BUFFER_SIZE == count)
-                {
-                    /* Wait until component is ready to send data to PC. */
-                    while (0u == USBUART_CDCIsReady())
-                    {
-                    }
-
-                    /* Send zero-length packet to PC. */
-                    USBUART_PutData(NULL, 0u);
-                }
-            }
-        }
-    }
-}
-
-uint16 USBUART_user_check_read(void) {
-    /* Service USB CDC when device is configured. */
-    if (0u != USBUART_GetConfiguration())
-    {
-        /* Check for input data from host. */
-        if (0u != USBUART_DataIsReady())
-        {
-            /* Read received data and re-enable OUT endpoint. */
-            count = USBUART_GetAll(buffer_read);
-            return count;
-        }
-        
-        return 0;
-    }
-    
-    return -1;
-}
-
-
 void print_imu_via_usbuart(void)
 {   
     //int32_t gyro_offset = 50000;
@@ -310,11 +264,10 @@ void print_imu_via_usbuart(void)
     //                            (float)accel.x/32768*IMU_ACC_SCALE*9.80665, (float)accel.y/32768*IMU_ACC_SCALE*9.80665,(float)accel.z/32768*IMU_ACC_SCALE*9.80665, 
     //                            (float)gyro.x/32768*IMU_GYO_SCALE, (float)gyro.y/32768*IMU_GYO_SCALE, (float)gyro.z/32768*IMU_GYO_SCALE);
 
-
     //count = sizeof(buffer);
     /* Send data back to host. */
     //USBUART_PutData(buffer, count);
-    USBUART_PutString((char8 *)buffer);
+    usb_put_string((char8 *)buffer);
 }
 
 // 1ms system tick callback interrupt function
@@ -322,6 +275,33 @@ void sys_clock_ms_callback(void){
     sys_clock_cur_ms ++; // increment ms counter by 1
 }
 
+/**
+ * @brief Interrupt handler for Shutter Active pin
+ */
+void Isr_shutter_handler(void)
+{
+    /* Set interrupt flag */
+	frame_status = NEW_FRAME;
+    
+    /* If pulse mode enabled, alternate LED/LASER */ 
+    if (pulse_enabled) {
+       if (light_status == LSR_ENABLE) {
+            light_status = LSR_DISABLE;
+            PWM_LASER_WriteCompare(PWM_LASER_OFF);
+        }
+        else if (light_status == LSR_DISABLE) {
+            light_status = LSR_ENABLE;
+            PWM_LASER_WriteCompare(pwm_laser_val);
+        }
+    }
+        
+    /* Trigger a new camera frame */
+    Trigger_Reg_Write(1);
+    
+    /* Clears the pin interrupt */
+    Exposure_Active_ClearInterrupt();
+    /* Clears the pending pin interrupt */
+    isr_EXPOSURE_ACT_ClearPending();
 
-
+}
 /* [] END OF FILE */
