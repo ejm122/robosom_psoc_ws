@@ -14,6 +14,8 @@
 */
 
 #include "usb_comm.h"
+#include "stdio.h"
+#include "stdbool.h"
 
 #define USBFS_DEVICE    (0u)
 #define USBUART_BUFFER_SIZE (64u)
@@ -39,6 +41,24 @@ void usb_print(uint8_t *buffer, uint8_t count){
         /* Send data back to host. */
         USBUART_PutData(buffer, count);
     }
+}
+
+/** @brief Function that reintializes USB communication if the configuration changes 
+           Returns true if a reinitialization occured. */
+bool usb_configuration_reinit(void) {
+    /* Host can send double SET_INTERFACE request. */
+    if (0u != USBUART_IsConfigurationChanged())
+    {
+        /* Initialize IN endpoints when device is configured. */
+        if (0u != USBUART_GetConfiguration())
+        {
+            /* Enumeration is done, enable OUT endpoint to receive data 
+             * from host. */
+            USBUART_CDC_Init();
+            return true;
+        }
+    }
+    return false;
 }
 
 /* usb_put_string:
@@ -85,19 +105,16 @@ void usb_put_char(uint8_t c){
     }
 }
 
-uint16_t usb_num_available(){
+uint16_t usb_num_available(bool *reconfigured){
+    bool result;
     if(in_buffer_ind >= in_buffer_ct) {
         in_buffer_ct = 0;
         in_buffer_ind = 0;
         
-        /* Host can send double SET_INTERFACE request. */
-        if (USBUART_IsConfigurationChanged()) {
-            /* Initialize IN endpoints when device is configured. */
-            if (USBUART_GetConfiguration()) {
-                /* Enumeration is done, enable OUT endpoint to receive data 
-                 * from host. */
-                USBUART_CDC_Init();
-            }
+        result = usb_configuration_reinit();
+        if (reconfigured != NULL)
+        {
+            *reconfigured = result;
         }
 
         /* Service USB CDC when device is configured. */
@@ -113,8 +130,8 @@ uint16_t usb_num_available(){
     return in_buffer_ct - in_buffer_ind;
 }
     
-uint8_t usb_get_char(){
-    
+uint8_t usb_get_char(bool *reconfigured){
+    bool result;
     /* If we have data, return the next character */
     if(in_buffer_ct > 0 && in_buffer_ind < in_buffer_ct){
         uint8_t val = in_buffer[in_buffer_ind];
@@ -124,14 +141,11 @@ uint8_t usb_get_char(){
         in_buffer_ct = 0;
         in_buffer_ind = 0;
         
-        /* Host can send double SET_INTERFACE request. */
-        if (USBUART_IsConfigurationChanged()) {
-            /* Initialize IN endpoints when device is configured. */
-            if (USBUART_GetConfiguration()) {
-                /* Enumeration is done, enable OUT endpoint to receive data 
-                 * from host. */
-                USBUART_CDC_Init();
-            }
+        
+        result = usb_configuration_reinit();
+        if (reconfigured != NULL)
+        {
+            *reconfigured = result;
         }
 
         /* Service USB CDC when device is configured. */
@@ -164,5 +178,7 @@ void process_usb_comm(){
         //process_usb_in(128);
     }
 }
+
+
 
 /* [] END OF FILE */

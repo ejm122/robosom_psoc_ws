@@ -120,6 +120,9 @@ int main(void)
 
     for(;;)
     {
+        bool reconfigured = false;
+        reconfigured = usb_configuration_reinit();
+        
         while (frame_status == NEW_FRAME) 
         {
             frame_status = NO_FRAME;
@@ -130,11 +133,19 @@ int main(void)
 
         if (USBUART_GetCount() > 0) 
         {
-            serial_input = usb_get_char();
+
+            serial_input = usb_get_char(&reconfigured);
         
             pwm_laser_val = serial_input & 0b01111111; // Mask for last 7 bits
             pulse_enabled = serial_input & 0b10000000; // Mask for first bit. - Just disables pulse, can change behavior to disable/enable Laser.
         }
+        
+        /*
+        // Retrigger each time USB communication is reconfigured - Alternatively, use a button to trigger an initial pulse.
+        if (reconfigured) {
+            Trigger_Reg_Write(1);
+        }
+        */
         
         
         led_test++;
