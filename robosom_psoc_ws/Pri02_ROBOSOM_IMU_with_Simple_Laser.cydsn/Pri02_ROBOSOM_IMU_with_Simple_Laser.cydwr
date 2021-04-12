@@ -562,6 +562,7 @@
       <Data key="722ee331-175b-4ce9-90a4-6f600ac9e567" value="BIO_27" />
       <Data key="744c93ff-0d1f-4e6d-a79e-3261c4349a50" value="Dyn_Dir" />
       <Data key="783e7e84-df62-4f03-8997-6477fdf06fb4" value="IMU_MOSI" />
+      <Data key="819a1d91-2bb7-4d6c-932c-aae0d62d0ae2" value="V3_EN" />
       <Data key="854ee71f-c544-4669-ba69-966d07ba832f" value="BIO_16" />
       <Data key="3455bf03-60bc-4bfb-9001-ee639861a6ef" value="BIO_24" />
       <Data key="4458e15a-cc19-4d2a-91c5-bf3d6733d257" value="BIO_14" />
@@ -3877,6 +3878,11 @@
         <Data key="Port Format" value="2,0" />
       </Group>
     </Group>
+    <Group key="819a1d91-2bb7-4d6c-932c-aae0d62d0ae2">
+      <Group key="0">
+        <Data key="Port Format" value="0,4" />
+      </Group>
+    </Group>
     <Group key="854ee71f-c544-4669-ba69-966d07ba832f">
       <Group key="0">
         <Data key="Port Format" value="1,4" />
@@ -3984,7 +3990,7 @@
     </Group>
     <Group key="c2f7c1cd-5c09-44f4-8025-6ac612c1e96e">
       <Group key="0">
-        <Data key="Port Format" value="1,4" />
+        <Data key="Port Format" value="3,5" />
       </Group>
     </Group>
     <Group key="c58f7443-5226-4c86-a08e-c7eaff2128d4">
