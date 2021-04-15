@@ -133,11 +133,14 @@ int main(void)
 
         if (USBUART_GetCount() > 0) 
         {
-
-            serial_input = usb_get_char(&reconfigured);
+            read_count = USBUART_user_check_read();
+            serial_input = buffer_read[0];
+            //serial_input = usb_get_char(&reconfigured);
         
             pwm_laser_val = serial_input & 0b01111111; // Mask for last 7 bits
             pulse_enabled = serial_input & 0b10000000; // Mask for first bit. - Just disables pulse, can change behavior to disable/enable Laser.
+            PWM_LASER_WriteCompare(pwm_laser_val);
+            led_test++;
         }
         
         /*
@@ -146,9 +149,6 @@ int main(void)
             Trigger_Reg_Write(1);
         }
         */
-        
-        
-        led_test++;
         
         //Led_Red_Write((led_test >> 0) & 0x01);
         Led_Green_Write((led_test >> 1) & 0x01);
@@ -258,6 +258,24 @@ int8_t imu_bmi160_read_acc_gyo(void)
     bmi160_get_sensor_data((BMI160_ACCEL_SEL | BMI160_GYRO_SEL | BMI160_TIME_SEL), &accel, &gyro, &sensor);
 
     return rslt;
+}
+
+uint16 USBUART_user_check_read(void) {
+    /* Service USB CDC when device is configured. */
+    if (0u != USBUART_GetConfiguration())
+    {
+        /* Check for input data from host. */
+        if (0u != USBUART_DataIsReady())
+        {
+            /* Read received data and re-enable OUT endpoint. */
+            count = USBUART_GetAll(buffer_read);
+            return count;
+        }
+        
+        return 0;
+    }
+    
+    return -1;
 }
 
 void print_imu_via_usbuart(void)
