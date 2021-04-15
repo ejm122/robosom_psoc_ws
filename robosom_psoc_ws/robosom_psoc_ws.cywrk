@@ -14,6 +14,7 @@
 <v>.\Pri04_ROBOSOM_ADC_4Ch_To_UART.cydsn\Pri04_ROBOSOM_ADC_4Ch_To_UART.cyprj</v>
 <v>.\Pri05_ROBOSOM_Buzzer_Tester.cydsn\Pri05_ROBOSOM_Buzzer_Tester.cyprj</v>
 <v>.\Pri02_ROBOSOM_IMU_with_Simple_Laser.cydsn\Pri02_ROBOSOM_IMU_with_Simple_Laser.cyprj</v>
+<v>.\Pri02_ROBOSOM_IMU_Advanced_Laser_Blaser_Protcol_FW2.cydsn\Pri02_ROBOSOM_IMU_Advanced_Laser_Blaser_Protcol_FW2.cyprj</v>
 </projects>
 <workspace_id v="43adb24a-68a4-4637-884f-83778c930dfb" />
 <WriteAppVersionLastSavedWith v="4.4.0.80" />
