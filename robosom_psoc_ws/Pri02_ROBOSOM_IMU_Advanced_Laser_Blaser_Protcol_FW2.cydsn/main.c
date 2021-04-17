@@ -13,7 +13,7 @@
 #include "stdio.h"
 #include "usb_comm.h"
 #include "blaser_protocol.h"
-#include "blaser_messages.h"
+#include "blaser_messages_psoc.h"
 
 // Include BMI160 Library and PSOC HAL
 #include "../Library/BMI160/bmi160.h"
@@ -59,7 +59,6 @@ enum shutter_active_state {
 
 uint8_t frame_status = NO_FRAME;
 uint8_t light_status = LSR_DISABLE;
-uint8_t pulse_enabled = 1;
 
 // Testing Function
 void print_imu_via_usbuart(void);
@@ -92,9 +91,9 @@ int main(void)
     I2C_1_Start();
     
     // IMU BMI160 Init
-    //imu_bmi160_init();
-    //imu_bmi160_config();
-    //imu_bmi160_enable_step_counter();
+    imu_bmi160_init();
+    imu_bmi160_config();
+    imu_bmi160_enable_step_counter();
     
     // PWM Block Init
     PWM_LED_Start();
@@ -239,18 +238,37 @@ void Isr_shutter_handler(void)
 {
     /* Set interrupt flag */
 	frame_status = NEW_FRAME;
-    
+    uint8_t pulse_state_val = get_pulse_state();
     /* If pulse mode enabled, alternate LED/LASER.
-       Currently, hardware only support Lasers. */ 
-    if (pulse_enabled) {
-       if (light_status == LSR_ENABLE) {
-            light_status = LSR_DISABLE;
+       Currently, hardware only support Lasers. 
+       Ideally, could add extra logic to only write to
+       PWM if state was changed vs. every frame. */ 
+    switch (pulse_state_val)
+    {
+        case PULSE_STATE_ALL_OFF:
             PWM_LASER_WriteCompare(PWM_LASER_OFF);
-        }
-        else if (light_status == LSR_DISABLE) {
+            /* Disable LED if PWM was supported */
+            break;
+        case PULSE_STATE_LED:
+            light_status = LSR_DISABLE;
+            /* Set LED to its configured PWM val if supported */
+            break;
+        case PULSE_STATE_LASER:
             light_status = LSR_ENABLE;
             PWM_LASER_WriteCompare(get_laser_val());
-        }
+        case PULSE_STATE_ALTERNATE:
+           if (light_status == LSR_ENABLE) {
+                light_status = LSR_DISABLE;
+                PWM_LASER_WriteCompare(PWM_LASER_OFF);
+            }
+            else if (light_status == LSR_DISABLE) {
+                light_status = LSR_ENABLE;
+                PWM_LASER_WriteCompare(get_laser_val());
+            }
+            break;
+        default:
+            /* Error case */
+            break;
     }
         
     /* Trigger a new camera frame */

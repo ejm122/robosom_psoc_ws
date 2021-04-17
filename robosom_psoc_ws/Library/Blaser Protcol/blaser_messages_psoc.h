@@ -11,18 +11,15 @@
  * Created 3/26/2021 by ebcohen@andrew.cmu.edu
  * ========================================
 */
-#ifndef BLASER_PROTOCOL_H_
-#define BLASER_PROTOCOL_H_
+#ifndef BLASER_MESSAGES_PSOC_H_
+#define BLASER_MESSAGES_PSOC_H_
     
 #include <stdint.h>
-    
-void blaser_comms_register(uint8_t (*read_char)(), uint16_t (*num_available)(), 
-                           void (*put_data)(uint8_t *buffer, uint16_t count));
+#include "blaser_messages.h"
 
-void blaser_comms_deregister(void);
-int8_t send_comms_cmd(uint8_t cmd_ID);
-int8_t read_comms_cmd(void);
+/* Public MCU-specific function definitions */
+uint8_t get_laser_val(void);
+uint8_t get_pulse_state(void);
 
-#endif /* BLASER_PROTOCOL_H_ */
-
+#endif /* BLASER_MESSAGES_PSOC_H_ */
 /* [] END OF FILE */

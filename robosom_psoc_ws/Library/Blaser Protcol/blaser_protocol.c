@@ -37,11 +37,11 @@ enum header_indices {
     MSG_HEADER_SIZE = 4
 };
 
+/** @brief Enum to define end of packet indices */
 enum packet_end_indicies {
     MSG_DATA_CRC = 0,
     MSG_DATA_ENDCHAR = 1,
-    MSG_DATA_NULLTERM = 2,
-    MSG_DATA_END_SIZE = 3
+    MSG_DATA_END_SIZE = 2
 };
 
 /** @brief Encode-stages to form state-machine logic */
@@ -54,7 +54,7 @@ enum encode_stages {
     FINISHED_CMD = 5
 };
 
-/* Generic Communication struct - Modified from eigenbus protocol */
+/** @brief Generic Communication struct - Modified from eigenbus protocol */
 typedef struct comm_struct {
     //Communication handlers
     uint8_t (*read_char)();
@@ -69,9 +69,11 @@ typedef struct comm_struct {
     uint8_t valid_payload;
     uint8_t pkt_stage;
 } blaser_comms_t;
+
 static blaser_comms_t comms;
 
-/* Table for CRC-8-CCITT from https://www.3dbrew.org/wiki/CRC-8-CCITT */
+/** @brief Table for CRC-8-CCITT from 
+    https://www.3dbrew.org/wiki/CRC-8-CCITT */
 static const uint8_t CRC_8_TABLE[256] = {
     0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15,
     0x38, 0x3F, 0x36, 0x31, 0x24, 0x23, 0x2A, 0x2D,
@@ -107,8 +109,10 @@ static const uint8_t CRC_8_TABLE[256] = {
     0xE6, 0xE1, 0xE8, 0xEF, 0xFA, 0xFD, 0xF4, 0xF3
 };
 
+/** @brief Static decleration for process byte helper */
 static void process_data_byte(uint8_t inChar);
 
+/** @brief Helper CRC generation function */
 static uint8_t crc_8_ccitt(uint8_t *data, uint16_t len)
 {
     uint8_t crc = 0xFF; //Seed of 0xFF
@@ -121,6 +125,7 @@ static uint8_t crc_8_ccitt(uint8_t *data, uint16_t len)
     return crc; //Final of 0x00
 }
 
+/** @brief Clears internal cmd protocol's function pointers. */
 void blaser_comms_deregister(void) 
 {
     comms.read_char = NULL;
@@ -132,6 +137,12 @@ void blaser_comms_deregister(void)
     comms.pkt_stage = MSG_NOT_STARTED;
 }
 
+/** @brief Registers the communication channel's functions to the cmd protocol.
+    @param uint8_t (*read_char)() Fcn pointer to read in a single character
+    @param uint16_t (*num_available)() Fcn pointer that returns bytes on stream
+    @param void (*put_data)(uint8_t *buffer, uint16_t count) Fcn pointer that
+           pushes bytes of count size from buffer onto send channel.
+ */
 void blaser_comms_register(uint8_t (*read_char)(), uint16_t (*num_available)(), 
                            void (*put_data)(uint8_t *buffer, uint16_t count))
 {
@@ -152,6 +163,8 @@ void blaser_comms_register(uint8_t (*read_char)(), uint16_t (*num_available)(),
     Considered allowable, as 
     1) malformed packets will be detected due to CRC in header
     2) lack of binary-encoding allows improved packet decode/encode speeds.
+
+    @return NO_ERR if read succesfully, otherwise negative error code
  */
 int8_t read_comms_cmd(void) 
 {
@@ -214,11 +227,14 @@ int8_t read_comms_cmd(void)
             comms.pkt_stage = MSG_NOT_STARTED;
         }
     }
-    // Returns last packet's status- 
+    // Returns last read packet's status- 
     // Might want better solution for reporting multiple packets at a time.
     return status;
 }
 
+/** @brief Helper function that breaks payload end of a packet
+    @param inChar Current char to process
+ */
 static void process_data_byte(uint8_t inChar)
 {
 
@@ -267,6 +283,8 @@ static void process_data_byte(uint8_t inChar)
 /** @brief Handles encoding a serial stream, and generates the CRCs on the msg.
     Packet structure: 
     [ M | MSG_ID | PAYLOAD_LEN | HEAD_CRC | PAYLOAD ... | PAYLOAD_CRC | \n ]
+    @param cmd_ID Message ID to send from source controller to destination. 
+    @return NO_ERR if successful, otherwise error of cmd. 
  */
 int8_t send_comms_cmd(uint8_t cmd_ID) 
 {
