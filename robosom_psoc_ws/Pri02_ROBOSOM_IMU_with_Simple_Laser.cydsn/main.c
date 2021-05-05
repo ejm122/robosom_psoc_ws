@@ -60,11 +60,14 @@ uint8_t light_status = LSR_DISABLE;
 uint8_t pulse_enabled = 1;
 uint8_t pwm_laser_val = 1;
 
-// Testing Function
+// Testing Functions
 void print_imu_via_usbuart(void);
+void print_exposure_timestamp(void);
 
 // System clock
 uint32 sys_clock_cur_ms = 0;
+uint32 t_ms = 0;
+uint32 t_s = 0;
 float sys_clock_cur_us_in_ms = 0;
 void sys_clock_ms_callback(void); // 1ms callback interrupt function
 
@@ -123,12 +126,15 @@ int main(void)
         bool reconfigured = false;
         reconfigured = usb_configuration_reinit();
         
+        imu_bmi160_read_acc_gyo();
+        //imu_bmi160_read_steps();
+        print_imu_via_usbuart();
+        
         while (frame_status == NEW_FRAME) 
         {
             frame_status = NO_FRAME;
-            imu_bmi160_read_acc_gyo();
-            //imu_bmi160_read_steps();
-            print_imu_via_usbuart();
+            print_exposure_timestamp();
+
         }
 
         if (USBUART_GetCount() > 0) 
@@ -288,7 +294,7 @@ void print_imu_via_usbuart(void)
     }
 
     // sprintf((char *)buffer, "%d\t%d\t%d\t%d\t%ld\t%ld\t%ld\r\n", step_count, accel.x, accel.y, accel.z, (long)(gyro.x + gyro_offset), (long)(gyro.y + gyro_offset), (long)(gyro.z + gyro_offset));
-    sprintf((char *)buffer, "%lu\t%d\t%d\t%d\t%d\t%d\t%d\r\n", sys_clock_cur_ms, accel.x, accel.y, accel.z, gyro.x, gyro.y, gyro.z);
+    sprintf((char *)buffer, "I:%lu\t%lu\t%d\t%d\t%d\t%d\t%d\t%d\r\n", t_ms, t_s, accel.x, accel.y, accel.z, gyro.x, gyro.y, gyro.z);
     //sprintf((char *)buffer, "%f\t%f\t%f\t%f\t%f\t%f\t%f\r\n", (float)sys_clock_cur_ms/1000 + sys_clock_cur_us_in_ms, 
     //                            (float)accel.x/32768*IMU_ACC_SCALE*9.80665, (float)accel.y/32768*IMU_ACC_SCALE*9.80665,(float)accel.z/32768*IMU_ACC_SCALE*9.80665, 
     //                            (float)gyro.x/32768*IMU_GYO_SCALE, (float)gyro.y/32768*IMU_GYO_SCALE, (float)gyro.z/32768*IMU_GYO_SCALE);
@@ -299,9 +305,22 @@ void print_imu_via_usbuart(void)
     usb_put_string((char8 *)buffer);
 }
 
+void print_exposure_timestamp(void)
+{
+    while (0u == USBUART_CDCIsReady())
+    {
+    }
+    
+    sprintf((char *)buffer, "E:%lu\t%lu\r\n", t_ms, t_s);
+    
+    usb_put_string((char8 *)(buffer));
+}
+
 // 1ms system tick callback interrupt function
 void sys_clock_ms_callback(void){
     sys_clock_cur_ms ++; // increment ms counter by 1
+    t_ms = (t_ms + 1) % 60000; // Count bounded ms
+    if(!(t_ms % 1000)) t_s = (t_s + 1) % 60; // Count seconds
 }
 
 /**
