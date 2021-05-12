@@ -25,8 +25,6 @@
 /** @brief Size of process buffer bytes for sending from data input */
 #define SEND_BUFFER_SIZE (256)
 
-/** @brief Checksum enable define */
-#define CHKSUM_ACTIVE (1)
 
 /** @brief Enum to define header indices */
 enum header_indices {
@@ -201,13 +199,9 @@ int8_t read_comms_cmd(void)
             case READ_MSG_LEN:
                 comms.pkt_stage = READ_HEADER;
                 comms.process_header[MSG_CRC_IDX] = 0; 
-                if (CHKSUM_ACTIVE) 
-                {
-                    // Designate the end of data used to generate the CRC
-                    uint8_t checksum_calc = crc_8_ccitt(comms.process_header, MSG_CRC_IDX);
-                    if (inChar != checksum_calc) comms.valid_header = 0;
-                }
-                // If CRC isn't active, skip over this byte to keep header size constant.
+                // Designate the end of data used to generate the CRC
+                uint8_t checksum_calc = crc_8_ccitt(comms.process_header, MSG_CRC_IDX);
+                if (inChar != checksum_calc) comms.valid_header = 0;
                 break;
             case READ_HEADER:
                 process_data_byte(inChar);

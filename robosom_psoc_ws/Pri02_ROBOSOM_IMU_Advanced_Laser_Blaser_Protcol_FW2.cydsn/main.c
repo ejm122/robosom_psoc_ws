@@ -64,9 +64,13 @@ uint8_t light_status = LSR_DISABLE;
 void print_imu_via_usbuart(void);
 
 // System clock
-uint32 sys_clock_cur_ms = 0;
+uint32 sys_clock_cur_us = 0;
+uint32 t_us = 0;
+uint32 t_s = 0;
+uint32 t_exposure_us = 0;
+uint32 t_exposure_s = 0;
 float sys_clock_cur_us_in_ms = 0;
-void sys_clock_ms_callback(void); // 1ms callback interrupt function
+void sys_clock_us_callback(void); // 1ms callback interrupt function
 
 // Interrupt handlers for the ximea camera
 void Isr_shutter_handler(void); // Shutter Active interrupt handler
@@ -108,13 +112,14 @@ int main(void)
     
     CyDelay(10000);
     /* For initial testing, establish USB communication before attempting to send first trigger frame */
-    while (0u == USBUART_CDCIsReady())
+    while (0u == USBUART_GetConfiguration())
     {
+        // Allow time for bus to send ready signal
+        CyDelay(1);
+        usb_configuration_reinit();
     }
     // Start system 1ms tick
-    CySysTickStart();
-    CySysTickSetCallback(0, sys_clock_ms_callback);
-    CySysTickEnableInterrupt();
+    isr_us_count_StartEx(sys_clock_us_callback);
     
     
     // Trigger first Ximea trigger pulse - Might want to link this to a button for manual triggering.
@@ -126,11 +131,12 @@ int main(void)
     {
         bool reconfigured = false;
         reconfigured = usb_configuration_reinit();
-        
+        send_comms_cmd(BLSR_POST_IMU_DATA);
+
         while (frame_status == NEW_FRAME) 
         {
+            send_comms_cmd(BLSR_POST_EXPOSURE_TIME);
             frame_status = NO_FRAME;
-            send_comms_cmd(BLSR_POST_IMU_DATA);
         }
 
         if (USBUART_GetCount() > 0) 
@@ -227,8 +233,13 @@ int8_t imu_bmi160_enable_step_counter(void)
 }
 
 // 1ms system tick callback interrupt function
-void sys_clock_ms_callback(void){
-    sys_clock_cur_ms ++; // increment ms counter by 1
+void sys_clock_us_callback(void){
+    sys_clock_cur_us ++; // increment ms counter by 1
+    t_us = (t_us + 1); // Count bounded us
+    if(!(t_us % 1000000)) t_s = (t_s + 1) % 60; // Count seconds
+    t_us = t_us % 1000000;
+    /* Clears the interrupt */
+    isr_us_count_ClearPending();
 }
 
 /**
@@ -237,6 +248,8 @@ void sys_clock_ms_callback(void){
 void Isr_shutter_handler(void)
 {
     /* Set interrupt flag */
+    t_exposure_us = t_us;
+    t_exposure_s = t_s;
 	frame_status = NEW_FRAME;
     uint8_t pulse_state_val = get_pulse_state();
     /* If pulse mode enabled, alternate LED/LASER.

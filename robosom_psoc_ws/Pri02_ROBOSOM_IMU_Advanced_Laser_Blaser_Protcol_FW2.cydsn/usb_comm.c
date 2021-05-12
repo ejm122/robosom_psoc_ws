@@ -38,8 +38,10 @@ void init_usb_comm(){
 /* Blocking print - Could expand count to be higher if needed */
 void usb_print_block(uint8_t *buffer, uint16_t count) {
     //If USB isn't enabled, wait for configuration to update
-    while (0u == USBUART_GetConfiguration()){
-         usb_configuration_reinit();   
+    while (0u == USBUART_GetConfiguration()) {
+        // Allow time for bus to send ready signal
+        //CyDelay(1);
+        usb_configuration_reinit();   
     }
 
     uint16_t remaining_bytes = count;
@@ -51,6 +53,9 @@ void usb_print_block(uint8_t *buffer, uint16_t count) {
         /* Wait until component is ready to send data to host. */
         while (0u == USBUART_CDCIsReady())
         {
+            // Allow time for bus to send ready signal
+            //CyDelay(1);
+            usb_configuration_reinit();
         }
 
         /* If the last sent packet is exactly the maximum packet 
@@ -68,6 +73,9 @@ void usb_print_block(uint8_t *buffer, uint16_t count) {
             /* Wait until component is ready to send data to PC. */
             while (0u == USBUART_CDCIsReady())
             {
+                // Allow time for bus to send ready signal
+                //CyDelay(1);
+                usb_configuration_reinit();
             }
 
             /* Send zero-length packet to PC. */

@@ -20,6 +20,7 @@
 #define ERR_BUFF_OVERFLOW (-4)
 #define ERR_SENSOR_READ (-5)
 #define ERR_UNKNOWN_CMD (-6)
+#define ERR_SENSOR_SET (-7)
 
 #endif /* ERROR_CODES_H_ */
 
