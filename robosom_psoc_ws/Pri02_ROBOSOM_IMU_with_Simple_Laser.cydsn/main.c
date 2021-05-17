@@ -42,6 +42,11 @@ uint16 read_count;
 uint8 buffer_read[USBUART_BUFFER_SIZE];
 uint8 serial_input = 0;
 
+// Exposure activate timestamps
+uint32_t seconds = 0;
+uint32 t_e_us = 0;
+uint32 t_e_s = 0;
+
 /* Laser/Shutter specific vars */
 #define PWM_LASER_OFF (0)
 
@@ -64,16 +69,13 @@ uint8_t pwm_laser_val = 1;
 void print_imu_via_usbuart(void);
 void print_exposure_timestamp(void);
 
-// System clock
-uint32 sys_clock_cur_us = 0;
-uint32 t_us = 0;
-uint32 t_s = 0;
 float sys_clock_cur_us_in_ms = 0;
 void sys_clock_us_callback(void); // 1ms callback interrupt function
 
 // Interrupt handlers for the ximea camera
 void Isr_shutter_handler(void); // Shutter Active interrupt handler
-void Isr_trigger_handler(void); // Trigger Timing interrupt handler
+
+void Isr_second_handler(void); // Timestamp second counter
 
 int main(void)
 {
@@ -88,6 +90,8 @@ int main(void)
     USBUART_CDC_Init();
     // I2C Init
     I2C_1_Start();
+    us_clock_Start();
+    isr_time_StartEx(Isr_second_handler);
     
     // IMU BMI160 Init
     imu_bmi160_init();
@@ -110,14 +114,6 @@ int main(void)
     while (0u == USBUART_CDCIsReady())
     {
     }
-    // Start system 1us tick
-    isr_us_count_StartEx(sys_clock_us_callback);
-    /*
-    CySysTickStart();
-    CySysTickSetCallback(0, sys_clock_ms_callback);
-    CySysTickEnableInterrupt();
-    */
-    
     
     // Trigger first Ximea trigger pulse - Might want to link this to a button for manual triggering.
     Trig_Pulser_Start();
@@ -129,7 +125,7 @@ int main(void)
         bool reconfigured = false;
         reconfigured = usb_configuration_reinit();
         
-        imu_bmi160_read_acc_gyo();
+        //imu_bmi160_read_acc_gyo();
         //imu_bmi160_read_steps();
         print_imu_via_usbuart();
         
@@ -289,9 +285,8 @@ uint16 USBUART_user_check_read(void) {
 
 void print_imu_via_usbuart(void)
 {   
-    //int32_t gyro_offset = 50000;
-    sys_clock_cur_us_in_ms = (float)CySysTickGetValue() * (1/(float)cydelay_freq_hz);
-
+    uint32 t_us = (1000000 - us_clock_ReadCounter());//cur_time_us();//second_rounded_us();
+    uint32 t_s = seconds;//cur_time_s();//uptime_s();
     while (0u == USBUART_CDCIsReady())
     {
     }
@@ -309,23 +304,25 @@ void print_imu_via_usbuart(void)
 }
 
 void print_exposure_timestamp(void)
-{
+{   
     while (0u == USBUART_CDCIsReady())
     {
     }
     
-    sprintf((char *)buffer, "E:%lu\t%lu\r\n", t_us, t_s);
+    sprintf((char *)buffer, "E:%lu\t%lu\r\n", t_e_us, t_e_s);
     
     usb_put_string((char8 *)(buffer));
 }
 
-// 1ms system tick callback interrupt function
-void sys_clock_us_callback(void){
-    sys_clock_cur_us ++; // increment ms counter by 1
-    t_us = (t_us + 1) % 60000000; // Count bounded ms
-    if(!(t_us % 1000000)) t_s = (t_s + 1) % 60; // Count seconds
-    /* Clears the interrupt */
-    isr_us_count_ClearPending();
+
+/**
+ * @brief Interrupt handler for second counting 
+ */
+void Isr_second_handler(void)
+{
+    seconds = seconds + 1;
+    isr_time_ClearPending();
+    us_clock_ReadStatusRegister();
 }
 
 /**
@@ -335,7 +332,8 @@ void Isr_shutter_handler(void)
 {
     /* Set interrupt flag */
 	frame_status = NEW_FRAME;
-    
+    t_e_us = (1000000 - us_clock_ReadCounter());
+    t_e_s = seconds;
     /* If pulse mode enabled, alternate LED/LASER */ 
     if (pulse_enabled) {
        if (light_status == LSR_ENABLE) {

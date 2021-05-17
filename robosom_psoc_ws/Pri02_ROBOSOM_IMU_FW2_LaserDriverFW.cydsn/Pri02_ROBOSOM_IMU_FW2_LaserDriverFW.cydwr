@@ -500,7 +500,7 @@
   </Group>
   <Group key="Component">
     <Group key="v1">
-      <Data key="cy_boot" value="cy_boot_v6_10" />
+      <Data key="cy_boot" value="cy_boot_v5_80" />
       <Data key="Em_EEPROM_Dynamic" value="Em_EEPROM_Dynamic_v2_20" />
       <Data key="LIN_Dynamic" value="LIN_Dynamic_v5_0" />
     </Group>
@@ -4055,7 +4055,7 @@
     </Group>
     <Group key="e49793bd-b593-40fb-8b94-c83be8d7fd55">
       <Group key="0">
-        <Data key="Port Format" value="3,0" />
+        <Data key="Port Format" value="1,2" />
       </Group>
     </Group>
     <Group key="e78273cd-52a5-442c-839b-23268cdcfbb4">

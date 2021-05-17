@@ -3,7 +3,7 @@
 <!--This file is machine generated and read. It is not intended to be edited by hand.-->
 <!--Due to this, there is no schema for this file.-->
 <CyGuid_2867d519-54d2-4c01-9830-c51cb08bc3dd type_name="CyDesigner.Common.ProjMgmt.Model.CyPrjMgmtWorkspaceSerialize" version="5" xml_contents_version="3" name="robosom_psoc_ws" persistent="robosom_psoc_ws.cywrk" platform="NOT_USED">
-<current_project name=".\Pri02_ROBOSOM_IMU_Advanced_Laser_Blaser_Protcol_FW2.cydsn\Pri02_ROBOSOM_IMU_Advanced_Laser_Blaser_Protcol_FW2.cyprj" />
+<current_project name=".\Pri02_ROBOSOM_IMU_with_Simple_Laser.cydsn\Pri02_ROBOSOM_IMU_with_Simple_Laser.cyprj" />
 <wrkspc_folders />
 <files />
 <projects>
@@ -15,6 +15,8 @@
 <v>.\Pri05_ROBOSOM_Buzzer_Tester.cydsn\Pri05_ROBOSOM_Buzzer_Tester.cyprj</v>
 <v>.\Pri02_ROBOSOM_IMU_with_Simple_Laser.cydsn\Pri02_ROBOSOM_IMU_with_Simple_Laser.cyprj</v>
 <v>.\Pri02_ROBOSOM_IMU_Advanced_Laser_Blaser_Protcol_FW2.cydsn\Pri02_ROBOSOM_IMU_Advanced_Laser_Blaser_Protcol_FW2.cyprj</v>
+<v>.\Pri02_ROBOSOM_IMU_FW2_LaserDriverFW.cydsn\Pri02_ROBOSOM_IMU_FW2_LaserDriverFW.cyprj</v>
+<v>.\blaser_us_clock.cylib\blaser_us_clock.cyprj</v>
 </projects>
 <workspace_id v="43adb24a-68a4-4637-884f-83778c930dfb" />
 <WriteAppVersionLastSavedWith v="4.4.0.80" />

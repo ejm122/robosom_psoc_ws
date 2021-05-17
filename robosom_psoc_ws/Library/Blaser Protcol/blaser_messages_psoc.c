@@ -37,7 +37,10 @@
 #include "error_codes.h"
 
 /** @brief Reference global system clock */
-extern uint32 t_us;
+inline uint32 t_us()
+{
+    return (us_clock_ReadPeriod() - us_clock_ReadCounter());   
+}
 extern uint32 t_s;
 extern uint32 t_exposure_us;
 extern uint32 t_exposure_s;
@@ -139,7 +142,7 @@ int8_t send_post_imu_data(uint8_t *out_buf, uint16_t len)
     BUILD_BUG_ON((sizeof(struct blaser_post_imu_data) != BLASER_POST_IMU_DATA_SIZE));
     
     rslt = bmi160_get_sensor_data((BMI160_ACCEL_SEL | BMI160_GYRO_SEL | BMI160_TIME_SEL), &accel, &gyro, &sensor);
-    uint32_t cur_time_us = t_us;
+    uint32_t cur_time_us = t_us();
     uint32_t cur_time_s = t_s;
     
     if (rslt != BMI160_OK) 
@@ -329,10 +332,10 @@ int8_t recv_set_mcu_time(uint8_t *in_buf)
     recv_us = SET_BYTE_IDX(recv_us, 1, msg.struct_data.usecs_BYTE_1);
     recv_us = SET_BYTE_IDX(recv_us, 0, msg.struct_data.usecs_BYTE_0);
 
-    __disable_irq();
-    t_us = recv_us;
+    us_clock_Stop();
+    us_clock_WriteCounter(recv_us);
     t_s = recv_s;
-    __enable_irq();
+    us_clock_Enable();
     
     return NO_ERR;
 }
