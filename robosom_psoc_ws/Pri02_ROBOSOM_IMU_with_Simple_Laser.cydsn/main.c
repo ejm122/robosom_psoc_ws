@@ -125,7 +125,7 @@ int main(void)
         bool reconfigured = false;
         reconfigured = usb_configuration_reinit();
         
-        //imu_bmi160_read_acc_gyo();
+        imu_bmi160_read_acc_gyo();
         //imu_bmi160_read_steps();
         print_imu_via_usbuart();
         
