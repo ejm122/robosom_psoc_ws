@@ -21,240 +21,245 @@
 /** Parameter Defines */
 
 /** @brief Configuration for ADC from Channel 1 */
-#define ICHT_ADDC1_ADDR                      UINT8_C(0x10)
-#define ICHT_ADDC1_SHIFT                     UINT8_C(5)
-#define ICHT_ADDC1_MASK                      UINT8_C(0xE0) // 7:5
+#define ICHT_ADDC1_ADDR                     UINT8_C(0x10)
+#define ICHT_ADDC1_SHIFT                    UINT8_C(5)
+#define ICHT_ADDC1_MASK                     UINT8_C(0xE0) // 7:5
 /** @brief Configuration for ADC from Channel 2 */
-#define ICHT_ADDC2_ADDR                      UINT8_C(0x15)
-#define ICHT_ADDC2_SHIFT                     UINT8_C(5)
-#define ICHT_ADDC2_MASK                      UINT8_C(0xE0) // 7:5
+#define ICHT_ADDC2_ADDR                     UINT8_C(0x15)
+#define ICHT_ADDC2_SHIFT                    UINT8_C(5)
+#define ICHT_ADDC2_MASK                     UINT8_C(0xE0) // 7:5
 /** @brief MDA force/sense for ADC measurement in channel 1 */
-#define ICHT_ADSNF1_ADDR                     UINT8_C(0x1A)
-#define ICHT_ADSNF1_SHIFT                    UINT8_C(2)
-#define ICHT_ADSNF1_MASK                     UINT8_C(0x04) // 2
+#define ICHT_ADSNF1_ADDR                    UINT8_C(0x1A)
+#define ICHT_ADSNF1_SHIFT                   UINT8_C(2)
+#define ICHT_ADSNF1_MASK                    UINT8_C(0x04) // 2
 /** @brief MDA force/sense for ADC measurement in channel 2 */
-#define ICHT_ADSNF2_ADDR                     UINT8_C(0x1A)
-#define ICHT_ADSNF2_SHIFT                    UINT8_C(6)
-#define ICHT_ADSNF2_MASK                     UINT8_C(0x40) // 6
+#define ICHT_ADSNF2_ADDR                    UINT8_C(0x1A)
+#define ICHT_ADSNF2_SHIFT                   UINT8_C(6)
+#define ICHT_ADSNF2_MASK                    UINT8_C(0x40) // 6
 /** @brief Channel 1 ACC resistor mirror factor */
-#define ICHT_RACC1_ADDR                      UINT8_C(0x1A)
-#define ICHT_RACC1_SHIFT                     UINT8_C(0)
-#define ICHT_RACC1_MASK                      UINT8_C(0x01) // 0
+#define ICHT_RACC1_ADDR                     UINT8_C(0x1A)
+#define ICHT_RACC1_SHIFT                    UINT8_C(0)
+#define ICHT_RACC1_MASK                     UINT8_C(0x01) // 0
 /** @brief Channel 2 ACC resistor mirror factor */
-#define ICHT_RACC2_ADDR                      UINT8_C(0x1A)
-#define ICHT_RACC2_SHIFT                     UINT8_C(4)
-#define ICHT_RACC2_MASK                      UINT8_C(0x10) // 4
+#define ICHT_RACC2_ADDR                     UINT8_C(0x1A)
+#define ICHT_RACC2_SHIFT                    UINT8_C(4)
+#define ICHT_RACC2_MASK                     UINT8_C(0x10) // 4
 /** @brief Channel 1 regulator delay compensation */
-#define ICHT_COMP1_ADDR                      UINT8_C(0x13)
-#define ICHT_COMP1_SHIFT                     UINT8_C(4)
-#define ICHT_COMP1_MASK                      UINT8_C(0x70) // 6:4
+#define ICHT_COMP1_ADDR                     UINT8_C(0x13)
+#define ICHT_COMP1_SHIFT                    UINT8_C(4)
+#define ICHT_COMP1_MASK                     UINT8_C(0x70) // 6:4
 /** @brief Channel 2 regulator delay compensation */
-#define ICHT_COMP2_ADDR                      UINT8_C(0x18)
-#define ICHT_COMP2_SHIFT                     UINT8_C(4)
-#define ICHT_COMP2_MASK                      UINT8_C(0x70) // 6:4
+#define ICHT_COMP2_ADDR                     UINT8_C(0x18)
+#define ICHT_COMP2_SHIFT                    UINT8_C(4)
+#define ICHT_COMP2_MASK                     UINT8_C(0x70) // 6:4
 /** @brief Software disable for channel 1 */
-#define ICHT_DISC1_ADDR                      UINT8_C(0x10)
-#define ICHT_DISC1_SHIFT                     UINT8_C(3)
-#define ICHT_DISC1_MASK                      UINT8_C(0x08) // 3
+#define ICHT_DISC1_ADDR                     UINT8_C(0x10)
+#define ICHT_DISC1_SHIFT                    UINT8_C(3)
+#define ICHT_DISC1_MASK                     UINT8_C(0x08) // 3
 /** @brief Software disable for channel 2 */
-#define ICHT_DISC2_ADDR                      UINT8_C(0x15)
-#define ICHT_DISC2_SHIFT                     UINT8_C(3)
-#define ICHT_DISC2_MASK                      UINT8_C(0x08) // 3
+#define ICHT_DISC2_ADDR                     UINT8_C(0x15)
+#define ICHT_DISC2_SHIFT                    UINT8_C(3)
+#define ICHT_DISC2_MASK                     UINT8_C(0x08) // 3
 /** @brief Disable PLR for channel 1 */
-#define ICHT_DISP1_ADDR                      UINT8_C(0x10)
-#define ICHT_DISP1_SHIFT                     UINT8_C(2)
-#define ICHT_DISP1_MASK                      UINT8_C(0x04) // 2
+#define ICHT_DISP1_ADDR                     UINT8_C(0x10)
+#define ICHT_DISP1_SHIFT                    UINT8_C(2)
+#define ICHT_DISP1_MASK                     UINT8_C(0x04) // 2
 /** @brief Disable PLR for channel 2 */
-#define ICHT_DISP2_ADDR                      UINT8_C(0x15)
-#define ICHT_DISP2_SHIFT                     UINT8_C(2)
-#define ICHT_DISP2_MASK                      UINT8_C(0x04) // 2
+#define ICHT_DISP2_ADDR                     UINT8_C(0x15)
+#define ICHT_DISP2_SHIFT                    UINT8_C(2)
+#define ICHT_DISP2_MASK                     UINT8_C(0x04) // 2
 /** @brief Enable ACC mode for channel 1 */
-#define ICHT_EACC1_ADDR                      UINT8_C(0x10)
-#define ICHT_EACC1_SHIFT                     UINT8_C(0)
-#define ICHT_EACC1_MASK                      UINT8_C(0x01) // 0
+#define ICHT_EACC1_ADDR                     UINT8_C(0x10)
+#define ICHT_EACC1_SHIFT                    UINT8_C(0)
+#define ICHT_EACC1_MASK                     UINT8_C(0x01) // 0
 /** @brief Enable ACC mode for channel 2 */
-#define ICHT_EACC2_ADDR                      UINT8_C(0x15)
-#define ICHT_EACC2_SHIFT                     UINT8_C(0)
-#define ICHT_EACC2_MASK                      UINT8_C(0x01) // 0
+#define ICHT_EACC2_ADDR                     UINT8_C(0x15)
+#define ICHT_EACC2_SHIFT                    UINT8_C(0)
+#define ICHT_EACC2_MASK                     UINT8_C(0x01) // 0
 /** @brief Enable external CI capacitor for channel 1 */
-#define ICHT_ECIE1_ADDR                      UINT8_C(0x10)
-#define ICHT_ECIE1_SHIFT                     UINT8_C(1)
-#define ICHT_ECIE1_MASK                      UINT8_C(0x02) // 1
+#define ICHT_ECIE1_ADDR                     UINT8_C(0x10)
+#define ICHT_ECIE1_SHIFT                    UINT8_C(1)
+#define ICHT_ECIE1_MASK                     UINT8_C(0x02) // 1
 /** @brief Enable external CI capacitor for channel 2 */
-#define ICHT_ECIE2_ADDR                      UINT8_C(0x15)
-#define ICHT_ECIE2_SHIFT                     UINT8_C(1)
-#define ICHT_ECIE2_MASK                      UINT8_C(0x02) // 1
+#define ICHT_ECIE2_ADDR                     UINT8_C(0x15)
+#define ICHT_ECIE2_SHIFT                    UINT8_C(1)
+#define ICHT_ECIE2_MASK                     UINT8_C(0x02) // 1
 /** @brief Enable offset compensation for channel  1 */
-#define ICHT_EOC1_ADDR                       UINT8_C(0x10)
-#define ICHT_EOC1_SHIFT                      UINT8_C(4)
-#define ICHT_EOC1_MASK                       UINT8_C(0x10) // 4
+#define ICHT_EOC1_ADDR                      UINT8_C(0x10)
+#define ICHT_EOC1_SHIFT                     UINT8_C(4)
+#define ICHT_EOC1_MASK                      UINT8_C(0x10) // 4
 /** @brief Enable offset compensation for channel  2 */
-#define ICHT_EOC2_ADDR                       UINT8_C(0x15)
-#define ICHT_EOC2_SHIFT                      UINT8_C(4)
-#define ICHT_EOC2_MASK                       UINT8_C(0x10) // 4
+#define ICHT_EOC2_ADDR                      UINT8_C(0x15)
+#define ICHT_EOC2_SHIFT                     UINT8_C(4)
+#define ICHT_EOC2_MASK                      UINT8_C(0x10) // 4
 /** @brief Current limit at channel 1 */
-#define ICHT_ILIM1_ADDR                      UINT8_C(0x11)
-#define ICHT_ILIM1_SHIFT                     UINT8_C(0)
-#define ICHT_ILIM1_MASK                      UINT8_C(0xFF) // 7:0
+#define ICHT_ILIM1_ADDR                     UINT8_C(0x11)
+#define ICHT_ILIM1_SHIFT                    UINT8_C(0)
+#define ICHT_ILIM1_MASK                     UINT8_C(0xFF) // 7:0
 /** @brief Current limit at channel 2 */
-#define ICHT_ILIM2_ADDR                      UINT8_C(0x16)
-#define ICHT_ILIM2_SHIFT                     UINT8_C(0)
-#define ICHT_ILIM2_MASK                      UINT8_C(0xFF) // 7:0
+#define ICHT_ILIM2_ADDR                     UINT8_C(0x16)
+#define ICHT_ILIM2_SHIFT                    UINT8_C(0)
+#define ICHT_ILIM2_MASK                     UINT8_C(0xFF) // 7:0
 /** @brief MERGE channels 1 and 2, controlled by channel 1 */
-#define ICHT_MERGE_ADDR                      UINT8_C(0x1B)
-#define ICHT_MERGE_SHIFT                     UINT8_C(6)
-#define ICHT_MERGE_MASK                      UINT8_C(0x40) // 6
+#define ICHT_MERGE_ADDR                     UINT8_C(0x1B)
+#define ICHT_MERGE_SHIFT                    UINT8_C(6)
+#define ICHT_MERGE_MASK                     UINT8_C(0x40) // 6
 /** @brief LDKSAT1 error mask */
-#define ICHT_MLDKSAT1_ADDR                   UINT8_C(0x1D)
-#define ICHT_MLDKSAT1_SHIFT                  UINT8_C(2)
-#define ICHT_MLDKSAT1_MASK                   UINT8_C(0x04) // 2
+#define ICHT_MLDKSAT1_ADDR                  UINT8_C(0x1D)
+#define ICHT_MLDKSAT1_SHIFT                 UINT8_C(2)
+#define ICHT_MLDKSAT1_MASK                  UINT8_C(0x04) // 2
 /** @brief LDKSAT2 error mask */
-#define ICHT_MLDKSAT2_ADDR                   UINT8_C(0x1D)
-#define ICHT_MLDKSAT2_SHIFT                  UINT8_C(3)
-#define ICHT_MLDKSAT2_MASK                   UINT8_C(0x08) // 3
+#define ICHT_MLDKSAT2_ADDR                  UINT8_C(0x1D)
+#define ICHT_MLDKSAT2_SHIFT                 UINT8_C(3)
+#define ICHT_MLDKSAT2_MASK                  UINT8_C(0x08) // 3
 /** @brief MONC error mask */
-#define ICHT_MMONC_ADDR                      UINT8_C(0x1D)
-#define ICHT_MMONC_SHIFT                     UINT8_C(1)
-#define ICHT_MMONC_MASK                      UINT8_C(0x02) // 1
+#define ICHT_MMONC_ADDR                     UINT8_C(0x1D)
+#define ICHT_MMONC_SHIFT                    UINT8_C(1)
+#define ICHT_MMONC_MASK                     UINT8_C(0x02) // 1
 /** @brief Configuration / Operation mode selection */
-#define ICHT_MODE_ADDR                       UINT8_C(0x1C)
-#define ICHT_MODE_SHIFT                      UINT8_C(0)
-#define ICHT_MODE_MASK                       UINT8_C(0x03) // 1:0
+#define ICHT_MODE_ADDR                      UINT8_C(0x1C)
+#define ICHT_MODE_SHIFT                     UINT8_C(0)
+#define ICHT_MODE_MASK                      UINT8_C(0x03) // 1:0
 /** @brief OSCERR error mask */
-#define ICHT_MOSCERR_ADDR                    UINT8_C(0x1D)
-#define ICHT_MOSCERR_SHIFT                   UINT8_C(0)
-#define ICHT_MOSCERR_MASK                    UINT8_C(0x01) // 0
+#define ICHT_MOSCERR_ADDR                   UINT8_C(0x1D)
+#define ICHT_MOSCERR_SHIFT                  UINT8_C(0)
+#define ICHT_MOSCERR_MASK                   UINT8_C(0x01) // 0
 /** @brief DC converter set point */
-#define ICHT_RDCO_ADDR                       UINT8_C(0x1B)
-#define ICHT_RDCO_SHIFT                      UINT8_C(0)
-#define ICHT_RDCO_MASK                       UINT8_C(0x3F) // 5:0
+#define ICHT_RDCO_ADDR                      UINT8_C(0x1B)
+#define ICHT_RDCO_SHIFT                     UINT8_C(0)
+#define ICHT_RDCO_MASK                      UINT8_C(0x3F) // 5:0
 /** @brief Voltage reference at channel 1 */
-#define ICHT_REF1_BYTE_0_ADDR                UINT8_C(0x14) // 9:0
-#define ICHT_REF1_BYTE_0_SHIFT               UINT8_C(0)
-#define ICHT_REF1_BYTE_0_MASK                UINT8_C(0xFF) // 7:0
-#define ICHT_REF1_BYTE_1_ADDR                UINT8_C(0x13)
-#define ICHT_REF1_BYTE_1_SHIFT               UINT8_C(0)
-#define ICHT_REF1_BYTE_1_MASK                UINT8_C(0x03) // 1:0
+#define ICHT_REF1_BYTE_0_ADDR               UINT8_C(0x14) // 9:0
+#define ICHT_REF1_BYTE_0_SHIFT              UINT8_C(0)
+#define ICHT_REF1_BYTE_0_MASK               UINT8_C(0xFF) // 7:0
+#define ICHT_REF1_BYTE_1_ADDR               UINT8_C(0x13)
+#define ICHT_REF1_BYTE_1_SHIFT              UINT8_C(0)
+#define ICHT_REF1_BYTE_1_MASK               UINT8_C(0x03) // 1:0
 /** @brief Voltage reference at channel 2 */
-#define ICHT_REF2_BYTE_0_ADDR                UINT8_C(0x19) // 9:0
-#define ICHT_REF2_BYTE_0_SHIFT               UINT8_C(0)
-#define ICHT_REF2_BYTE_0_MASK                UINT8_C(0xFF) // 7:0
-#define ICHT_REF2_BYTE_1_ADDR                UINT8_C(0x18)
-#define ICHT_REF2_BYTE_1_SHIFT               UINT8_C(0)
-#define ICHT_REF2_BYTE_1_MASK                UINT8_C(0x03) // 1:0
+#define ICHT_REF2_BYTE_0_ADDR               UINT8_C(0x19) // 9:0
+#define ICHT_REF2_BYTE_0_SHIFT              UINT8_C(0)
+#define ICHT_REF2_BYTE_0_MASK               UINT8_C(0xFF) // 7:0
+#define ICHT_REF2_BYTE_1_ADDR               UINT8_C(0x18)
+#define ICHT_REF2_BYTE_1_SHIFT              UINT8_C(0)
+#define ICHT_REF2_BYTE_1_MASK               UINT8_C(0x03) // 1:0
 /** @brief Channel 1 LDK saturation detector threshold */
-#define ICHT_RLDKS1_ADDR                     UINT8_C(0x13)
-#define ICHT_RLDKS1_SHIFT                    UINT8_C(2)
-#define ICHT_RLDKS1_MASK                     UINT8_C(0x0C) // 3:2
+#define ICHT_RLDKS1_ADDR                    UINT8_C(0x13)
+#define ICHT_RLDKS1_SHIFT                   UINT8_C(2)
+#define ICHT_RLDKS1_MASK                    UINT8_C(0x0C) // 3:2
 /** @brief Channel 2 LDK saturation detector threshold */
-#define ICHT_RLDKS2_ADDR                     UINT8_C(0x18)
-#define ICHT_RLDKS2_SHIFT                    UINT8_C(2)
-#define ICHT_RLDKS2_MASK                     UINT8_C(0x0C) // 3:2
+#define ICHT_RLDKS2_ADDR                    UINT8_C(0x18)
+#define ICHT_RLDKS2_SHIFT                   UINT8_C(2)
+#define ICHT_RLDKS2_MASK                    UINT8_C(0x0C) // 3:2
 /** @brief Resistor at channel 1 */
-#define ICHT_RMD1_ADDR                       UINT8_C(0x12)
-#define ICHT_RMD1_SHIFT                      UINT8_C(0)
-#define ICHT_RMD1_MASK                       UINT8_C(0xFF) // 7:0
+#define ICHT_RMD1_ADDR                      UINT8_C(0x12)
+#define ICHT_RMD1_SHIFT                     UINT8_C(0)
+#define ICHT_RMD1_MASK                      UINT8_C(0xFF) // 7:0
 /** @brief Resistor at channel 2 */
-#define ICHT_RMD2_ADDR                       UINT8_C(0x17)
-#define ICHT_RMD2_SHIFT                      UINT8_C(0)
-#define ICHT_RMD2_MASK                       UINT8_C(0xFF) // 7:0
+#define ICHT_RMD2_ADDR                      UINT8_C(0x17)
+#define ICHT_RMD2_SHIFT                     UINT8_C(0)
+#define ICHT_RMD2_MASK                      UINT8_C(0xFF) // 7:0
 /** @brief Oscillator error simulation (watchdog timeout) */
-#define ICHT_SOSCERR_ADDR                    UINT8_C(0x1D)
-#define ICHT_SOSCERR_SHIFT                   UINT8_C(7)
-#define ICHT_SOSCERR_MASK                    UINT8_C(0x80) // 7
+#define ICHT_SOSCERR_ADDR                   UINT8_C(0x1D)
+#define ICHT_SOSCERR_SHIFT                  UINT8_C(7)
+#define ICHT_SOSCERR_MASK                   UINT8_C(0x80) // 7
 /** @brief Overcurrent event at channel 1 simulation */
-#define ICHT_SOVC1_ADDR                      UINT8_C(0x1D)
-#define ICHT_SOVC1_SHIFT                     UINT8_C(5)
-#define ICHT_SOVC1_MASK                      UINT8_C(0x20) // 5
+#define ICHT_SOVC1_ADDR                     UINT8_C(0x1D)
+#define ICHT_SOVC1_SHIFT                    UINT8_C(5)
+#define ICHT_SOVC1_MASK                     UINT8_C(0x20) // 5
 /** @brief Overcurrent event at channel 2 simulation */
-#define ICHT_SOVC2_ADDR                      UINT8_C(0x1D)
-#define ICHT_SOVC2_SHIFT                     UINT8_C(6)
-#define ICHT_SOVC2_MASK                      UINT8_C(0x40) // 6
+#define ICHT_SOVC2_ADDR                     UINT8_C(0x1D)
+#define ICHT_SOVC2_SHIFT                    UINT8_C(6)
+#define ICHT_SOVC2_MASK                     UINT8_C(0x40) // 6
 /** @brief Overtemperature event simulation */
-#define ICHT_SOVT_ADDR                       UINT8_C(0x1D)
-#define ICHT_SOVT_SHIFT                      UINT8_C(4)
-#define ICHT_SOVT_MASK                       UINT8_C(0x10) // 4
+#define ICHT_SOVT_ADDR                      UINT8_C(0x1D)
+#define ICHT_SOVT_SHIFT                     UINT8_C(4)
+#define ICHT_SOVT_MASK                      UINT8_C(0x10) // 4
 
 /** Status register addresses - R/O */
 
 /** @brief RAM initialized. */
-#define ICHT_INITRAM_ADDR                    UINT8_C(0x00)
-#define ICHT_INITRAM_SHIFT                   UINT8_C(0)
-#define ICHT_INITRAM_MASK                    UINT8_C(0x01) // 0
+#define ICHT_INITRAM_ADDR                   UINT8_C(0x00)
+#define ICHT_INITRAM_SHIFT                  UINT8_C(0)
+#define ICHT_INITRAM_MASK                   UINT8_C(0x01) // 0
 /** @brief Power-down event at VDD */
-#define ICHT_PDOVDD_ADDR                     UINT8_C(0x00)
-#define ICHT_PDOVDD_SHIFT                    UINT8_C(1)
-#define ICHT_PDOVDD_MASK                     UINT8_C(0x02) // 1
+#define ICHT_PDOVDD_ADDR                    UINT8_C(0x00)
+#define ICHT_PDOVDD_SHIFT                   UINT8_C(1)
+#define ICHT_PDOVDD_MASK                    UINT8_C(0x02) // 1
 /** @brief RAM memory validation error */
-#define ICHT_MEMERR_ADDR                     UINT8_C(0x00)
-#define ICHT_MEMERR_SHIFT                    UINT8_C(2)
-#define ICHT_MEMERR_MASK                     UINT8_C(0x04) // 2
+#define ICHT_MEMERR_ADDR                    UINT8_C(0x00)
+#define ICHT_MEMERR_SHIFT                   UINT8_C(2)
+#define ICHT_MEMERR_MASK                    UINT8_C(0x04) // 2
 /** @brief Overtemperature event */
-#define ICHT_OVT_ADDR                        UINT8_C(0x00)
-#define ICHT_OVT_SHIFT                       UINT8_C(3)
-#define ICHT_OVT_MASK                        UINT8_C(0x08) // 3
+#define ICHT_OVT_ADDR                       UINT8_C(0x00)
+#define ICHT_OVT_SHIFT                      UINT8_C(3)
+#define ICHT_OVT_MASK                       UINT8_C(0x08) // 3
 /** @brief Overcurrent at channel 2 */
-#define ICHT_OVC2_ADDR                       UINT8_C(0x00)
-#define ICHT_OVC2_SHIFT                      UINT8_C(4)
-#define ICHT_OVC2_MASK                       UINT8_C(0x10) // 4
+#define ICHT_OVC2_ADDR                      UINT8_C(0x00)
+#define ICHT_OVC2_SHIFT                     UINT8_C(4)
+#define ICHT_OVC2_MASK                      UINT8_C(0x10) // 4
 /** @brief Overcurrent at channel 1 */
-#define ICHT_OVC1_ADDR                       UINT8_C(0x00)
-#define ICHT_OVC1_SHIFT                      UINT8_C(5)
-#define ICHT_OVC1_MASK                       UINT8_C(0x20) // 5
+#define ICHT_OVC1_ADDR                      UINT8_C(0x00)
+#define ICHT_OVC1_SHIFT                     UINT8_C(5)
+#define ICHT_OVC1_MASK                      UINT8_C(0x20) // 5
 /** @brief Oscillator error (watchdog set) */
-#define ICHT_OSCERR_ADDR                     UINT8_C(0x00)
-#define ICHT_OSCERR_SHIFT                    UINT8_C(6)
-#define ICHT_OSCERR_MASK                     UINT8_C(0x40) // 6
+#define ICHT_OSCERR_ADDR                    UINT8_C(0x00)
+#define ICHT_OSCERR_SHIFT                   UINT8_C(6)
+#define ICHT_OSCERR_MASK                    UINT8_C(0x40) // 6
 /** @brief Configuration mode timeout event */
-#define ICHT_CFGTIMO_ADDR                    UINT8_C(0x00)
-#define ICHT_CFGTIMO_SHIFT                   UINT8_C(7)
-#define ICHT_CFGTIMO_MASK                    UINT8_C(0x80) // 8
+#define ICHT_CFGTIMO_ADDR                   UINT8_C(0x00)
+#define ICHT_CFGTIMO_SHIFT                  UINT8_C(7)
+#define ICHT_CFGTIMO_MASK                   UINT8_C(0x80) // 8
 /** @brief Channel 1 current state */
-#define ICHT_MAPC1_ADDR                      UINT8_C(0x01)
-#define ICHT_MAPC1_SHIFT                     UINT8_C(0)
-#define ICHT_MAPC1_MASK                      UINT8_C(0x01) // 0
+#define ICHT_MAPC1_ADDR                     UINT8_C(0x01)
+#define ICHT_MAPC1_SHIFT                    UINT8_C(0)
+#define ICHT_MAPC1_MASK                     UINT8_C(0x01) // 0
 /** @brief Monitor channel 1 enabled at least once (latched) */
-#define ICHT_MONC1_ADDR                      UINT8_C(0x01)
-#define ICHT_MONC1_SHIFT                     UINT8_C(1)
-#define ICHT_MONC1_MASK                      UINT8_C(0x02) // 1
+#define ICHT_MONC1_ADDR                     UINT8_C(0x01)
+#define ICHT_MONC1_SHIFT                    UINT8_C(1)
+#define ICHT_MONC1_MASK                     UINT8_C(0x02) // 1
 /** @brief Channel 1 LDK saturation event */
-#define ICHT_LDKSAT1_ADDR                    UINT8_C(0x01)
-#define ICHT_LDKSAT1_SHIFT                   UINT8_C(2)
-#define ICHT_LDKSAT1_MASK                    UINT8_C(0x04) // 2
+#define ICHT_LDKSAT1_ADDR                   UINT8_C(0x01)
+#define ICHT_LDKSAT1_SHIFT                  UINT8_C(2)
+#define ICHT_LDKSAT1_MASK                   UINT8_C(0x04) // 2
 /** @brief Channel 2 current state */
-#define ICHT_MAPC2_ADDR                      UINT8_C(0x01)
-#define ICHT_MAPC2_SHIFT                     UINT8_C(4)
-#define ICHT_MAPC2_MASK                      UINT8_C(0x10) // 4
+#define ICHT_MAPC2_ADDR                     UINT8_C(0x01)
+#define ICHT_MAPC2_SHIFT                    UINT8_C(4)
+#define ICHT_MAPC2_MASK                     UINT8_C(0x10) // 4
 /** @brief Monitor channel 2 enabled at least once (latched) */
-#define ICHT_MONC2_ADDR                      UINT8_C(0x01)
-#define ICHT_MONC2_SHIFT                     UINT8_C(5)
-#define ICHT_MONC2_MASK                      UINT8_C(0x20) // 5
+#define ICHT_MONC2_ADDR                     UINT8_C(0x01)
+#define ICHT_MONC2_SHIFT                    UINT8_C(5)
+#define ICHT_MONC2_MASK                     UINT8_C(0x20) // 5
 /** @brief Channel 2 LDK saturation event */
-#define ICHT_LDKSAT2_ADDR                    UINT8_C(0x01)
-#define ICHT_LDKSAT2_SHIFT                   UINT8_C(6)
-#define ICHT_LDKSAT2_MASK                    UINT8_C(0x40) // 6
+#define ICHT_LDKSAT2_ADDR                   UINT8_C(0x01)
+#define ICHT_LDKSAT2_SHIFT                  UINT8_C(6)
+#define ICHT_LDKSAT2_MASK                   UINT8_C(0x40) // 6
 
 /** Measurement addresses - R/O */
 
 /** @brief Chip temperature measurement */
-#define ICHT_TEMP_ADDR                       UINT8_C(0x02)
-#define ICHT_TEMP_SHIFT                      UINT8_C(0)
-#define ICHT_TEMP_MASK                       UINT8_C(0xFF) // 7:0
+#define ICHT_TEMP_ADDR                      UINT8_C(0x02)
+#define ICHT_TEMP_SHIFT                     UINT8_C(0)
+#define ICHT_TEMP_MASK                      UINT8_C(0xFF) // 7:0
 /** @brief Channel 1 ADC 7:0 readout */
-#define ICHT_ADC1_BYTE_0_ADDR                UINT8_C(0x04) // 9:0
-#define ICHT_ADC1_BYTE_0_SHIFT               UINT8_C(0)
-#define ICHT_ADC1_BYTE_0_MASK                UINT8_C(0xFF) // 7:0
+#define ICHT_ADC1_BYTE_0_ADDR               UINT8_C(0x04) // 9:0
+#define ICHT_ADC1_BYTE_0_SHIFT              UINT8_C(0)
+#define ICHT_ADC1_BYTE_0_MASK               UINT8_C(0xFF) // 7:0
 /** @brief Channel 1 ADC 9:8 readout */
-#define ICHT_ADC1_BYTE_1_ADDR                UINT8_C(0x03)
-#define ICHT_ADC1_BYTE_1_SHIFT               UINT8_C(0)
-#define ICHT_ADC1_BYTE_1_MASK                UINT8_C(0x03) // 1:0
-/** @brief Chip temperature measurement */
-#define ICHT_ADC1_BYTE_0_ADDR                UINT8_C(0x04) // 9:0
-#define ICHT_ADC1_BYTE_0_SHIFT               UINT8_C(0)
-#define ICHT_ADC1_BYTE_0_MASK                UINT8_C(0xFF) // 7:0
-#define ICHT_ADC1_BYTE_1_ADDR                UINT8_C(0x03)
-#define ICHT_ADC1_BYTE_1_SHIFT               UINT8_C(0)
-#define ICHT_ADC1_BYTE_1_MASK                UINT8_C(0x03) // 1:0
+#define ICHT_ADC1_BYTE_1_ADDR               UINT8_C(0x03)
+#define ICHT_ADC1_BYTE_1_SHIFT              UINT8_C(0)
+#define ICHT_ADC1_BYTE_1_MASK               UINT8_C(0x03) // 1:0
+/** @brief Channel 2 ADC 7:0 readout */
+#define ICHT_ADC2_BYTE_0_ADDR               UINT8_C(0x06) // 9:0
+#define ICHT_ADC2_BYTE_0_SHIFT              UINT8_C(0)
+#define ICHT_ADC2_BYTE_0_MASK               UINT8_C(0xFF) // 7:0
+/** @brief Channel 2 ADC 9:8 readout */
+#define ICHT_ADC2_BYTE_1_ADDR               UINT8_C(0x05)
+#define ICHT_ADC2_BYTE_1_SHIFT              UINT8_C(0)
+#define ICHT_ADC2_BYTE_1_MASK               UINT8_C(0x03) // 1:0
+/** @brief Chip revision identification */
+#define ICHT_CHIPREV_ADDR                   UINT8_C(0x05)
+#define ICHT_CHIPREV_SHIFT                  UINT8_C(0)
+#define ICHT_CHIPREV_MASK                   UINT8_C(0x03) // 1:0
 
 
 

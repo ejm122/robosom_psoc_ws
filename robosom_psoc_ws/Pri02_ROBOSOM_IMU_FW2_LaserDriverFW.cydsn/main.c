@@ -64,13 +64,10 @@ uint8_t light_status = LSR_DISABLE;
 void print_imu_via_usbuart(void);
 
 // System clock
-uint32 sys_clock_cur_us = 0;
-uint32 t_us = 0;
 uint32 t_s = 0;
 uint32 t_exposure_us = 0;
 uint32 t_exposure_s = 0;
-float sys_clock_cur_us_in_ms = 0;
-void sys_clock_us_callback(void); // 1ms callback interrupt function
+void sys_clock_us_callback(void); // 1s callback interrupt function
 
 // Interrupt handlers for the ximea camera
 void Isr_shutter_handler(void); // Shutter Active interrupt handler
@@ -118,9 +115,9 @@ int main(void)
         CyDelay(1);
         usb_configuration_reinit();
     }
-    // Start system 1ms tick
-    isr_us_count_StartEx(sys_clock_us_callback);
-    
+    // Start system us timer and handler
+    us_clock_Start();
+    isr_time_StartEx(sys_clock_us_callback);
     
     // Trigger first Ximea trigger pulse - Might want to link this to a button for manual triggering.
     Trig_Pulser_Start();
@@ -232,14 +229,11 @@ int8_t imu_bmi160_enable_step_counter(void)
 
 }
 
-// 1ms system tick callback interrupt function
+// 1 s system tick callback interrupt function
 void sys_clock_us_callback(void){
-    sys_clock_cur_us ++; // increment ms counter by 1
-    t_us = (t_us + 1); // Count bounded us
-    if(!(t_us % 1000000)) t_s = (t_s + 1) % 60; // Count seconds
-    t_us = t_us % 1000000;
-    /* Clears the interrupt */
-    isr_us_count_ClearPending();
+    t_s = t_s + 1;
+    isr_time_ClearPending();
+    us_clock_ReadStatusRegister();
 }
 
 /**
@@ -248,7 +242,7 @@ void sys_clock_us_callback(void){
 void Isr_shutter_handler(void)
 {
     /* Set interrupt flag */
-    t_exposure_us = t_us;
+    t_exposure_us = (us_clock_ReadPeriod() - us_clock_ReadCounter());
     t_exposure_s = t_s;
 	frame_status = NEW_FRAME;
     uint8_t pulse_state_val = get_pulse_state();
