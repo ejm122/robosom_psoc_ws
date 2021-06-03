@@ -9,7 +9,6 @@
 <projects>
 <v>.\Pri00_ROBOSOM_Bootloader.cydsn\Pri00_ROBOSOM_Bootloader.cyprj</v>
 <v>.\Pri01_ROBOSOM_Template_Bootloadable.cydsn\Pri01_ROBOSOM_Template_Bootloadable.cyprj</v>
-<v>.\Pri02_ROBOSOM_IMU_Test.cydsn\Pri02_ROBOSOM_IMU_Test.cyprj</v>
 <v>.\Pri03_ROBOSOM_ADC_To_UART.cydsn\Pri03_ROBOSOM_ADC_To_UART.cyprj</v>
 <v>.\Pri04_ROBOSOM_ADC_4Ch_To_UART.cydsn\Pri04_ROBOSOM_ADC_4Ch_To_UART.cyprj</v>
 <v>.\Pri05_ROBOSOM_Buzzer_Tester.cydsn\Pri05_ROBOSOM_Buzzer_Tester.cyprj</v>
@@ -17,6 +16,9 @@
 <v>.\Pri02_ROBOSOM_IMU_Advanced_Laser_Blaser_Protcol_FW2.cydsn\Pri02_ROBOSOM_IMU_Advanced_Laser_Blaser_Protcol_FW2.cyprj</v>
 <v>.\Pri02_ROBOSOM_IMU_FW2_LaserDriverFW.cydsn\Pri02_ROBOSOM_IMU_FW2_LaserDriverFW.cyprj</v>
 <v>.\blaser_us_clock.cylib\blaser_us_clock.cyprj</v>
+<v>.\Pri02_ROBOSOM_IMU_with_Simple_Laser_Ext_Driver_Test.cydsn\Pri02_ROBOSOM_IMU_with_Simple_Laser_Ext_Driver_Test.cyprj</v>
+<v>.\Pri02_ROBOSOM_V2R2_IMU_Test.cydsn\Pri02_ROBOSOM_V2R2_IMU_Test.cyprj</v>
+<v>.\Pri00_ROBOSOM_V2R2_Bootloader.cydsn\Pri00_ROBOSOM_V2R2_Bootloader.cyprj</v>
 </projects>
 <workspace_id v="43adb24a-68a4-4637-884f-83778c930dfb" />
 <WriteAppVersionLastSavedWith v="4.4.0.80" />
