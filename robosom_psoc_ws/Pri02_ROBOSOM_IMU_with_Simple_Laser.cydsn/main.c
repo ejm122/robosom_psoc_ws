@@ -101,12 +101,14 @@ int main(void)
     // PWM Block Init
     PWM_LED_Start();
     PWM_LASER_Start();
+    PWM_BUZZER_Start();
+    PWM_BUZZER_EN_Start();
    
     /* Turn off LEDs */
     Led_Red_Write(0);
     Led_Green_Write(0);
     Led_Blue_Write(0);
-    Led_Key_Write(1);
+    PLED_Write(1);
     CyGlobalIntEnable; /* Enable global interrupts. */
     
     CyDelay(10000);
