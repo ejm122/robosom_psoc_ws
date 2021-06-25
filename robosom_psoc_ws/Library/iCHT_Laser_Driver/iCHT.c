@@ -14,6 +14,12 @@
 #include "iCHT_Defines.h"
 #include "project.h"
 
+#include "stdio.h"
+#include "usb_comm.h"
+#define USBFS_DEVICE    (0u)
+#define USBUART_BUFFER_SIZE (256u)
+uint8 buffer[USBUART_BUFFER_SIZE];
+
 int8_t ICHT_read_register(uint8_t addr, uint8_t *out_bytes, uint8_t len, const struct ICHT_config *conf)
 {
     int8_t status = ICHT_NO_ERR;
@@ -28,7 +34,7 @@ int8_t ICHT_read_register(uint8_t addr, uint8_t *out_bytes, uint8_t len, const s
     
     if (status != ICHT_NO_ERR)
     {
-        return ICHT_I2C_ERR;
+        return status;
     }
 
     return status;
@@ -66,7 +72,6 @@ int8_t ICHT_psoc_i2c_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, uin
 
     if(status == I2C_1_MSTR_NO_ERROR) /* Check if transfer completed without errors */
     {
-        reg_addr = ICHT_SET_READ_FLAG(reg_addr);
         /* Write control byte */
         status = I2C_1_MasterWriteByte(reg_addr);
     }
@@ -105,7 +110,6 @@ int8_t ICHT_psoc_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, ui
 
     if(status == I2C_1_MSTR_NO_ERROR) /* Check if transfer completed without errors */
     {
-        reg_addr = ICHT_SET_WRITE_FLAG(reg_addr);
         /* Write register byte */
         status = I2C_1_MasterWriteByte(reg_addr);
     }
@@ -131,15 +135,72 @@ int8_t ICHT_psoc_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, ui
     return status;
 }
 
+/* Local helper function declarations */
+void ICHT_decode_ADSNF_RACC_Config(uint8_t config_reg,
+                                   struct ICHT_ADSNF_RACC_Config *regs);
+void ICHT_decode_status_regs(uint8_t *status_reg,
+                             struct ICHT_Status_Regs_R *regs);
+
 int8_t ICHT_init(struct ICHT_config *conf)
 {
-    uint8_t status = ICHT_NO_ERR;
+    int status = ICHT_NO_ERR;
+    int status_2 = ICHT_NO_ERR;
     struct ICHT_Status_Regs_R regs;
-    conf->device_number = ICHT_SET_SLAVE_ADDR(0);
+    conf->device_number = ICHT_DEFAULT_SLAVE_ADDR;
     conf->read = &ICHT_psoc_i2c_read;
     conf->write = &ICHT_psoc_i2c_write;
-    
+    sprintf((char *)buffer, "Starting INIT!\n");
+    CyDelay(10);
+    usb_put_string((char8 *)buffer);
     status = ICHT_get_status_regs(conf, &regs);
+    if (status != ICHT_NO_ERR)
+    {
+        sprintf((char *)buffer, "Failed status reg read %d!\n", status);
+        usb_put_string((char8 *)buffer);
+        CyDelay(10);
+        //return status;   
+    }
+    
+    uint8_t rev;
+    status_2 = ICHT_get_chip_rev(conf, &rev);
+    if (status_2 != ICHT_NO_ERR)
+    {
+        sprintf((char *)buffer, "Failed CHIPREV read! %d \n", status_2);
+        usb_put_string((char8 *)buffer);
+        CyDelay(10);
+        //return status_2;   
+    }
+    else {
+        sprintf((char *)buffer, "CHIPREV: %x\n", rev);
+        usb_put_string((char8 *)buffer);
+        CyDelay(10);
+    }
+    if (status != ICHT_NO_ERR) return status;
+    else {    
+        sprintf((char *)buffer, "Flags: CFGTIMO %x INITRAM %x LDKSAT1 %x LDKSAT2 %x MPAC1 %x MPAC2 %x MEMERR %x MONC1 %x MONC2 %x OSCERR %x OCV1 %x OCV2 %x OVT %x PDOVDD %x\n", 
+        regs.CFGTIMO, regs.INITRAM, regs.LDKSAT1, regs.LDKSAT2, regs.MAPC1, regs.MAPC2, regs.MEMERR, regs.MONC1, regs.MONC2, regs.OSCERR, regs.OVC1, regs.OVC2, regs.OVT, regs.PDOVDD);
+        usb_put_string((char8 *)buffer);      
+        CyDelay(10);
+    }
+    return status;
+}
+
+int8_t ICHT_write_all_regs(struct ICHT_config *conf)
+{
+    int status = ICHT_NO_ERR;
+    
+    struct ICHT_ADC_Config adc_conf = 
+    {
+      .channel = ICHT_CHANNEL_1,
+      .source = ICHT_ADCC_SRC_LDK,
+      .enable_offset_compensation = true,
+      .disable_channel = true,
+      .disable_PLR = true,
+      .enable_external_capacitor = true,
+      .mode = ICHT_ACC_ENABLE
+    };
+    
+    status = ICHT_init(conf);
     if (status != ICHT_NO_ERR)
     {
         return status;   
@@ -169,7 +230,13 @@ int8_t ICHT_get_status_regs(const struct ICHT_config *conf,
     {
         return status;
     }
-    
+    ICHT_decode_status_regs(status_reg, regs);
+    return status;
+}
+
+void ICHT_decode_status_regs(uint8_t *status_reg,
+                             struct ICHT_Status_Regs_R *regs)
+{
     regs->CFGTIMO = ICHT_REG_GET(status_reg[0], ICHT_CFGTIMO);
     regs->OSCERR = ICHT_REG_GET(status_reg[0], ICHT_OSCERR);
     regs->OVC1 = ICHT_REG_GET(status_reg[0], ICHT_OVC1);
@@ -185,8 +252,6 @@ int8_t ICHT_get_status_regs(const struct ICHT_config *conf,
     regs->LDKSAT1 = ICHT_REG_GET(status_reg[1], ICHT_LDKSAT1);
     regs->MONC1 = ICHT_REG_GET(status_reg[1], ICHT_MONC1);    
     regs->MAPC1 = ICHT_REG_GET(status_reg[1], ICHT_MAPC1);
-
-    return status;
 }
 
 /** @brief Reads the internal chip temp register
@@ -208,10 +273,12 @@ int8_t ICHT_get_temp(const struct ICHT_config *conf, uint8_t *temp)
     {
         return status;
     }
-    
-    *temp = temp_reg;
-
     return status;
+}
+
+void ICHT_decode_temp(uint8_t temp_reg, uint8_t *temp)
+{
+    *temp = temp_reg;
 }
 
 /** @brief Reads the current value of the ADC for a given channel
@@ -528,6 +595,7 @@ int8_t ICHT_set_Regulator_Config(const struct ICHT_config *conf,
     addr = (regs->channel == ICHT_CHANNEL_1) ? ICHT_REG_1_CONFIG : 
             ICHT_REG_2_CONFIG;
     
+    reg_config_reg[0] = 0;
     reg_config_reg[0] = ICHT_REG_SET(reg_config_reg[0], ICHT_COMP, 
                                      regs->compensation);
     reg_config_reg[0] = ICHT_REG_SET(reg_config_reg[0], ICHT_RLDKS, 
@@ -561,12 +629,17 @@ int8_t ICHT_get_ADSNF_RACC_Config(const struct ICHT_config *conf,
         return status;   
     }
     
+    ICHT_decode_ADSNF_RACC_Config(config_reg, regs);
+    return status;
+}
+    
+void ICHT_decode_ADSNF_RACC_Config(uint8_t config_reg,
+                                   struct ICHT_ADSNF_RACC_Config *regs)
+{
     regs->range_1 = ICHT_REG_GET(config_reg, ICHT_RACC1);
     regs->range_2 = ICHT_REG_GET(config_reg, ICHT_RACC2);
     regs->source_1 = ICHT_REG_GET(config_reg, ICHT_ADSNF1);
     regs->source_2 = ICHT_REG_GET(config_reg, ICHT_ADSNF2);
-    
-    return status;
 }
 
 /** @brief Writes various the ADSNF and RACC variables for both channels
@@ -733,16 +806,10 @@ int8_t ICHT_set_error_regs(const struct ICHT_config *conf,
                             struct ICHT_Error_Regs *regs)
 {
     uint8_t status_reg = 0;
-    int8_t status;
     
     if (regs == NULL)
     {
         return ICHT_NULL_PTR;   
-    }
-    
-    if (status != ICHT_NO_ERR)
-    {
-        return status;
     }
     
     status_reg = ICHT_REG_SET(status_reg, ICHT_SOSCERR, regs->SOSCERR);

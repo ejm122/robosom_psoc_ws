@@ -16,6 +16,7 @@
 // Include BMI160 Library and PSOC HAL
 #include "../Library/BMI160/bmi160.h"
 #include "../Library/BMI160/bmi160_psoc.h"
+#include "../Library/iCHT_Laser_Driver/iCHT_Defines.h"
 
 struct bmi160_dev sensor;
 struct bmi160_sensor_data accel;
@@ -63,7 +64,7 @@ enum shutter_active_state {
 uint8_t frame_status = NO_FRAME;
 uint8_t light_status = LSR_DISABLE;
 uint8_t pulse_enabled = 1;
-uint8_t pwm_laser_val = 1;
+uint8_t pwm_laser_val = 50;
 
 // Testing Functions
 void print_imu_via_usbuart(void);
@@ -87,50 +88,66 @@ int main(void)
     
     // USBUART Init
     init_usb_comm();
+    USBUART_Start(USBFS_DEVICE, USBUART_5V_OPERATION);
     USBUART_CDC_Init();
+    CyGlobalIntEnable; /* Enable global interrupts. */
     // I2C Init
-    I2C_1_Start();
+    //I2C_1_Start();
     us_clock_Start();
     isr_time_StartEx(Isr_second_handler);
-    
     // IMU BMI160 Init
-    imu_bmi160_init();
-    imu_bmi160_config();
-    imu_bmi160_enable_step_counter();
+    //imu_bmi160_init();
+    //imu_bmi160_config();
+    //imu_bmi160_enable_step_counter();
     
     // PWM Block Init
     PWM_LED_Start();
     PWM_LASER_Start();
-    PWM_BUZZER_Start();
-    PWM_BUZZER_EN_Start();
+    //PWM_BUZZER_Start();
+    //PWM_BUZZER_EN_Start();
    
     /* Turn off LEDs */
     Led_Red_Write(0);
     Led_Green_Write(0);
     Led_Blue_Write(0);
     PLED_Write(1);
-    CyGlobalIntEnable; /* Enable global interrupts. */
+  
     
-    CyDelay(10000);
+
     /* For initial testing, establish USB communication before attempting to send first trigger frame */
     while (0u == USBUART_CDCIsReady())
     {
+        usb_configuration_reinit();
     }
     
     // Trigger first Ximea trigger pulse - Might want to link this to a button for manual triggering.
     Trig_Pulser_Start();
     Trigger_Reg_Write(1);
     
+    struct ICHT_config config;
 
+    //imu_bmi160_read_steps();
+    sprintf((char *)buffer, "Connected!\n");
+
+    usb_put_string((char8 *)buffer);
+    
     for(;;)
     {
+        
         bool reconfigured = false;
         reconfigured = usb_configuration_reinit();
-        
+        CyDelay(10000);
+        sprintf((char *)buffer, "TEST!\n");
+
+        usb_put_string((char8 *)buffer);
+        //imu_bmi160_read_acc_gyo();
+        //print_imu_via_usbuart();
+       
+        //ICHT_init(&config);
+        /*
         imu_bmi160_read_acc_gyo();
         //imu_bmi160_read_steps();
         print_imu_via_usbuart();
-        
         while (frame_status == NEW_FRAME) 
         {
             frame_status = NO_FRAME;
@@ -150,12 +167,6 @@ int main(void)
             led_test++;
         }
         
-        /*
-        // Retrigger each time USB communication is reconfigured - Alternatively, use a button to trigger an initial pulse.
-        if (reconfigured) {
-            Trigger_Reg_Write(1);
-        }
-        */
         
         //Led_Red_Write((led_test >> 0) & 0x01);
         Led_Green_Write((led_test >> 1) & 0x01);
@@ -164,7 +175,8 @@ int main(void)
         if (Led_Key_Read() == 0)
         {
             led_test = 0;
-        }    
+        }
+        */
     }
 }
 

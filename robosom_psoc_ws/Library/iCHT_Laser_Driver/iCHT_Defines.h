@@ -205,12 +205,6 @@
 
 #define ICHT_DEFAULT_SLAVE_ADDR             UINT8_C(0x60)
 
-/** @brief Flag macros */
-#define ICHT_SET_WRITE_FLAG(reg)            (((reg) &  0x3F) | 0x80)
-#define ICHT_SET_READ_FLAG(reg)             (((reg) &  0x3F) | 0x40)
-/* @brief Five most significant bits of address are fixed to 0b11000 */
-#define ICHT_SET_SLAVE_ADDR(reg)            (((reg) | 0b01100000) & 0b01100011)
-
 /** Error code definitions */
 #define ICHT_NO_ERR                         INT8_C(0)
 #define ICHT_NULL_PTR                       INT8_C(-1)
@@ -529,10 +523,55 @@ struct ICHT_Error_Regs
     bool MOSCERR;
 };
 
-/** Function defines */
+struct ICHT_all_WR_Regs
+{
+    struct ICHT_ADC_Config ADC_Config_1;
+    struct ICHT_Overcurrent_Threshold ILIM_1;
+    struct ICHT_Internal_Monitor_Resistance RMD_1;
+    
+    
+};
 
+/** Function defines */
+int8_t ICHT_init(struct ICHT_config *conf);
 int8_t ICHT_get_status_regs(const struct ICHT_config *conf, 
                             struct ICHT_Status_Regs_R *regs);
 int8_t ICHT_get_temp(const struct ICHT_config *conf, uint8_t *temp);
+int8_t ICHT_get_ADC(const struct ICHT_config *conf,
+                    struct ICHT_ADC_Val_R *regs);
+int8_t ICHT_get_chip_rev(const struct ICHT_config *conf, uint8_t *rev);
+int8_t ICHT_get_ADC_Config(const struct ICHT_config *conf,
+                           struct ICHT_ADC_Config *regs);
+int8_t ICHT_set_ADC_Config(const struct ICHT_config *conf,
+                           struct ICHT_ADC_Config *regs);
+int8_t ICHT_get_overcurrent_thresh(const struct ICHT_config *conf,
+                                   struct ICHT_Overcurrent_Threshold *regs);
+int8_t ICHT_set_overcurrent_thresh(const struct ICHT_config *conf,
+                                   struct ICHT_Overcurrent_Threshold *regs);
+int8_t ICHT_get_monitor_resistance(const struct ICHT_config *conf,
+                                   struct ICHT_Internal_Monitor_Resistance *regs);
+int8_t ICHT_set_monitor_resistance(const struct ICHT_config *conf,
+                                   struct ICHT_Internal_Monitor_Resistance *regs);
+int8_t ICHT_get_Regulator_Config(const struct ICHT_config *conf,
+                                 struct ICHT_Regulator_Config *regs);
+int8_t ICHT_set_Regulator_Config(const struct ICHT_config *conf,
+                                 struct ICHT_Regulator_Config *regs);
+int8_t ICHT_get_ADSNF_RACC_Config(const struct ICHT_config *conf,
+                                  struct ICHT_ADSNF_RACC_Config *regs);
+int8_t ICHT_set_ADSNF_RACC_Config(const struct ICHT_config *conf,
+                                  struct ICHT_ADSNF_RACC_Config *regs);
+int8_t ICHT_get_Merge_RDCO_Config(const struct ICHT_config *conf,
+                                  struct ICHT_Merge_RDCO_Config *regs);
+int8_t ICHT_set_Merge_RDCO_Config(const struct ICHT_config *conf,
+                                  struct ICHT_Merge_RDCO_Config *regs);
+int8_t ICHT_get_mode(const struct ICHT_config *conf,
+                     ICHT_MODE_SETTING *mode);
+int8_t ICHT_set_mode(const struct ICHT_config *conf,
+                     ICHT_MODE_SETTING *mode);
+int8_t ICHT_get_error_regs(const struct ICHT_config *conf, 
+                            struct ICHT_Error_Regs *regs);
+int8_t ICHT_set_error_regs(const struct ICHT_config *conf, 
+                            struct ICHT_Error_Regs *regs);
+
 
 #endif /* ICHT_DEFINES_H_ */
