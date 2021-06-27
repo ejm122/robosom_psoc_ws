@@ -92,7 +92,7 @@ int main(void)
     USBUART_CDC_Init();
     CyGlobalIntEnable; /* Enable global interrupts. */
     // I2C Init
-    //I2C_1_Start();
+    I2C_1_Start();
     us_clock_Start();
     isr_time_StartEx(Isr_second_handler);
     // IMU BMI160 Init
@@ -102,7 +102,7 @@ int main(void)
     
     // PWM Block Init
     PWM_LED_Start();
-    PWM_LASER_Start();
+    //PWM_LASER_Start();
     //PWM_BUZZER_Start();
     //PWM_BUZZER_EN_Start();
    
@@ -143,7 +143,7 @@ int main(void)
         //imu_bmi160_read_acc_gyo();
         //print_imu_via_usbuart();
        
-        //ICHT_init(&config);
+        ICHT_init_test(&config);
         /*
         imu_bmi160_read_acc_gyo();
         //imu_bmi160_read_steps();
@@ -352,11 +352,11 @@ void Isr_shutter_handler(void)
     if (pulse_enabled) {
        if (light_status == LSR_ENABLE) {
             light_status = LSR_DISABLE;
-            PWM_LASER_WriteCompare(PWM_LASER_OFF);
+            //PWM_LASER_WriteCompare(PWM_LASER_OFF);
         }
         else if (light_status == LSR_DISABLE) {
             light_status = LSR_ENABLE;
-            PWM_LASER_WriteCompare(pwm_laser_val);
+            //PWM_LASER_WriteCompare(pwm_laser_val);
         }
     }
         

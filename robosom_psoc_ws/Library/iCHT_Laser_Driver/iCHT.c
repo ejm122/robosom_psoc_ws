@@ -138,10 +138,17 @@ int8_t ICHT_psoc_i2c_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, ui
 /* Local helper function declarations */
 void ICHT_decode_ADSNF_RACC_Config(uint8_t config_reg,
                                    struct ICHT_ADSNF_RACC_Config *regs);
-void ICHT_decode_status_regs(uint8_t *status_reg,
-                             struct ICHT_Status_Regs_R *regs);
+void ICHT_decode_status_reg_LSB(uint8_t status_reg,
+                                struct ICHT_Status_Regs_R *regs);
+void ICHT_decode_status_reg_MSB(uint8_t status_reg,
+                                struct ICHT_Status_Regs_R *regs);
+void ICHT_decode_temp(uint8_t temp_reg, uint8_t *temp);
+void ICHT_decode_ADC_LSB(uint8_t adc_reg_LSB, struct ICHT_ADC_Val_R *regs);
+void ICHT_decode_ADC_MSB(uint8_t adc_reg_MSB, struct ICHT_ADC_Val_R *regs);
+void ICHT_decode_chip_rev(uint8_t rev_reg, uint8_t *rev);
+void ICHT_decode_ADC_Config(uint8_t adc_config_reg, struct ICHT_ADC_Config *regs);
 
-int8_t ICHT_init(struct ICHT_config *conf)
+int8_t ICHT_init_test(struct ICHT_config *conf)
 {
     int status = ICHT_NO_ERR;
     int status_2 = ICHT_NO_ERR;
@@ -185,28 +192,276 @@ int8_t ICHT_init(struct ICHT_config *conf)
     return status;
 }
 
-int8_t ICHT_write_all_regs(struct ICHT_config *conf)
-{
-    int status = ICHT_NO_ERR;
-    
-    struct ICHT_ADC_Config adc_conf = 
-    {
-      .channel = ICHT_CHANNEL_1,
-      .source = ICHT_ADCC_SRC_LDK,
-      .enable_offset_compensation = true,
-      .disable_channel = true,
-      .disable_PLR = true,
-      .enable_external_capacitor = true,
-      .mode = ICHT_ACC_ENABLE
+/** @brief Configures the iCHT driver structs with default write settings */
+void ICHT_init_structs(struct ICHT_config *conf) {
+    conf->device_number = ICHT_DEFAULT_SLAVE_ADDR;
+    conf->read = &ICHT_psoc_i2c_read;
+    conf->write = &ICHT_psoc_i2c_write;
+    // Zero the struct
+    struct ICHT_reg_list reg_list = {0};
+
+    struct ICHT_ADC_Val_R ADC_Val_R = {
+        .channel = ICHT_CHANNEL_1,
+        .ADC = 0
     };
+    reg_list.ADC1 = ADC_Val_R;
+    ADC_Val_R.channel = ICHT_CHANNEL_2;
+    reg_list.ADC2 = ADC_Val_R;
     
-    status = ICHT_init(conf);
-    if (status != ICHT_NO_ERR)
-    {
-        return status;   
-    }
+    // Default configuration settings for W channels
+    struct ICHT_ADC_Config ADC_Config = {
+        .channel = ICHT_CHANNEL_1,
+        .disable_PLR = true,
+        .enable_external_capacitor = true,
+        .enable_offset_compensation = true,
+        .mode = ICHT_APC_ENABLE,
+        .source = ICHT_ADCC_SRC_DISABLED
+    };
+     
+    // Configure settings same for CHN 1 and 2
+    reg_list.ADCCONFIG1 = ADC_Config;
+    ADC_Config.channel = ICHT_CHANNEL_2;
+    reg_list.ADCCONFIG2 = ADC_Config;
     
-    return status;
+    reg_list.RMD1.channel = ICHT_CHANNEL_1;
+    reg_list.RMD2.channel = ICHT_CHANNEL_2;
+    
+    /* TODO - DOUBLE CHECK Electrical Characteristic 108
+       at a supply voltage of 5V.
+     */
+    /* 
+       RLD63NPC8 N-Diode Laser has max of 80mA
+       Documentation isn't consistent, assuming
+       max of RACC_LO is 80mA, can set to MAX
+       Max voltage of 2.6V
+     */
+    reg_list.ILIM2.channel = ICHT_CHANNEL_2;
+    reg_list.ILIM2.n = 0xFF;
+    reg_list.ADSNFRACC.range_2 = ICHT_RACC_CURRENT_LO; 
+    // Not high enough to prevent dmg, 5V source - 1.2 = 3.8 > 2.6
+    reg_list.REGCONFIG2.channel = ICHT_CHANNEL_2;
+    reg_list.REGCONFIG2.sat_threshold = ICHT_RLDKS_VLDK_LT_1_2V;
+    
+    /* 
+       D405-120 M diode has a max of 150mA
+       Datasheet isn't consistent..
+       Assuming typical shutdown resolution D_I(LDK)
+       of 4 when RACC = HIGH, n = 38?
+       Max voltage of 6V
+     */
+    reg_list.ILIM1.channel = ICHT_CHANNEL_1;
+    reg_list.ILIM1.n = 38;
+    reg_list.ADSNFRACC.range_1 = ICHT_RACC_CURRENT_HI;
+    reg_list.REGCONFIG1.channel = ICHT_CHANNEL_1;
+    reg_list.REGCONFIG1.sat_threshold = ICHT_RLDKS_VLDK_LT_0_5V;
+    
+    reg_list.mode = ICHT_MODE_SETTING_OP;
+    conf->regs = reg_list;
+}
+
+/** @brief Reads all regs and updates them in the provided struct */
+int8_t ICHT_read_all_regs(struct ICHT_config *conf, struct ICHT_reg_list *reg_list) {
+   uint8_t status = ICHT_get_status_regs(conf, &(reg_list->STATUS));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_temp(conf, &(reg_list->TEMP_R));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_ADC(conf, &(reg_list->ADC1));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_ADC(conf, &(reg_list->ADC2));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_chip_rev(conf, &(reg_list->CHIP_REV_R));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_ADC_Config(conf, &(reg_list->ADCCONFIG1));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_overcurrent_thresh(conf, &(reg_list->ILIM1));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_monitor_resistance(conf, &(reg_list->RMD1));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_Regulator_Config(conf, &(reg_list->REGCONFIG1));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_ADC_Config(conf, &(reg_list->ADCCONFIG2));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_overcurrent_thresh(conf, &(reg_list->ILIM2));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_monitor_resistance(conf, &(reg_list->RMD2));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_Regulator_Config(conf, &(reg_list->REGCONFIG2));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_ADSNF_RACC_Config(conf, &(reg_list->ADSNFRACC));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_Merge_RDCO_Config(conf, &(reg_list->MERGERDCO));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_mode(conf, &(reg_list->mode));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_get_error_regs(conf, &(reg_list->ERROR));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+   return status;
+}
+
+/** Performs the start-up sequence for the iCHT driver, clearing status regs and writing out the reg_list.
+    The initial results of the read status registers will be placed in reg_list,
+    and the final results of the read status registers and the full system status will be placed in conf's regs.
+ */
+int8_t ICHT_configure_driver(struct ICHT_config *conf, struct ICHT_reg_list *reg_list)
+{
+    reg_list->mode = ICHT_MODE_SETTING_CONFIG;
+    uint8_t status = ICHT_set_mode(conf, &(reg_list->mode));
+    if (status != ICHT_NO_ERR) return status;
+    
+    // Clears the status registers
+    status = ICHT_get_status_regs(conf, &(reg_list->STATUS));
+    if (status != ICHT_NO_ERR) return status;
+    // Write out all registers
+    status = ICHT_write_all_regs(conf, reg_list);
+    if (status != ICHT_NO_ERR) return status;
+    
+    // Return to operation mode
+    reg_list->mode = ICHT_MODE_SETTING_OP;
+    status = ICHT_set_mode(conf, &(reg_list->mode));
+    if (status != ICHT_NO_ERR) return status;
+    
+    // Get resulting driver status
+    return ICHT_read_all_regs(conf, &(conf->regs));
+}
+
+/** @brief Writes all writeable regs from the provided struct */
+int8_t ICHT_write_all_regs(struct ICHT_config *conf, struct ICHT_reg_list *reg_list)
+{
+   uint8_t status = ICHT_set_overcurrent_thresh(conf, &(reg_list->ILIM1));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_set_monitor_resistance(conf, &(reg_list->RMD1));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_set_Regulator_Config(conf, &(reg_list->REGCONFIG1));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_set_ADC_Config(conf, &(reg_list->ADCCONFIG2));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_set_overcurrent_thresh(conf, &(reg_list->ILIM2));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_set_monitor_resistance(conf, &(reg_list->RMD2));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_set_Regulator_Config(conf, &(reg_list->REGCONFIG2));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_set_ADSNF_RACC_Config(conf, &(reg_list->ADSNFRACC));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   status = ICHT_set_Merge_RDCO_Config(conf, &(reg_list->MERGERDCO));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+
+   /* Mode isn't written due to nature of changing configuration modes
+   status = ICHT_set_mode(conf, &(reg_list->mode));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+   */
+
+   status = ICHT_set_error_regs(conf, &(reg_list->ERROR));
+   if (status != ICHT_NO_ERR)
+   {
+       return status;
+   }
+   return status;
 }
 
 /** @brief Reads the status registers, acknowledging any errors.
@@ -215,7 +470,7 @@ int8_t ICHT_write_all_regs(struct ICHT_config *conf)
 int8_t ICHT_get_status_regs(const struct ICHT_config *conf, 
                             struct ICHT_Status_Regs_R *regs)
 {
-    uint8_t status_reg[2];
+    uint8_t status_reg_LSB, status_reg_MSB;
     int8_t status;
     
     if (regs == NULL)
@@ -224,34 +479,45 @@ int8_t ICHT_get_status_regs(const struct ICHT_config *conf,
     }
     
     /* Reads the status, LSB byte first */
-    status = ICHT_read_register(ICHT_STATUS_ADDR_LSB, status_reg, 2, conf);
-    
+    status = ICHT_read_register(ICHT_STATUS_ADDR_LSB, &status_reg_LSB, 1, conf);
     if (status != ICHT_NO_ERR)
     {
         return status;
     }
-    ICHT_decode_status_regs(status_reg, regs);
+    
+    status = ICHT_read_register(ICHT_STATUS_ADDR_MSB, &status_reg_MSB, 1, conf);
+    if (status != ICHT_NO_ERR)
+    {
+        return status;
+    }
+    
+    ICHT_decode_status_reg_LSB(status_reg_LSB, regs);
+    ICHT_decode_status_reg_MSB(status_reg_MSB, regs);
     return status;
 }
 
-void ICHT_decode_status_regs(uint8_t *status_reg,
-                             struct ICHT_Status_Regs_R *regs)
+void ICHT_decode_status_reg_LSB(uint8_t status_reg,
+                                struct ICHT_Status_Regs_R *regs)
 {
-    regs->CFGTIMO = ICHT_REG_GET(status_reg[0], ICHT_CFGTIMO);
-    regs->OSCERR = ICHT_REG_GET(status_reg[0], ICHT_OSCERR);
-    regs->OVC1 = ICHT_REG_GET(status_reg[0], ICHT_OVC1);
-    regs->OVC2 = ICHT_REG_GET(status_reg[0], ICHT_OVC2);
-    regs->OVT = ICHT_REG_GET(status_reg[0], ICHT_OVT);
-    regs->MEMERR = ICHT_REG_GET(status_reg[0], ICHT_MEMERR);
-    regs->PDOVDD = ICHT_REG_GET(status_reg[0], ICHT_PDOVDD);
-    regs->INITRAM = ICHT_REG_GET(status_reg[0], ICHT_INITRAM);
-    
-    regs->LDKSAT2 = ICHT_REG_GET(status_reg[1], ICHT_LDKSAT2);
-    regs->MONC2 = ICHT_REG_GET(status_reg[1], ICHT_MONC2);    
-    regs->MAPC2 = ICHT_REG_GET(status_reg[1], ICHT_MAPC2);   
-    regs->LDKSAT1 = ICHT_REG_GET(status_reg[1], ICHT_LDKSAT1);
-    regs->MONC1 = ICHT_REG_GET(status_reg[1], ICHT_MONC1);    
-    regs->MAPC1 = ICHT_REG_GET(status_reg[1], ICHT_MAPC1);
+    regs->CFGTIMO = ICHT_REG_GET(status_reg, ICHT_CFGTIMO);
+    regs->OSCERR = ICHT_REG_GET(status_reg, ICHT_OSCERR);
+    regs->OVC1 = ICHT_REG_GET(status_reg, ICHT_OVC1);
+    regs->OVC2 = ICHT_REG_GET(status_reg, ICHT_OVC2);
+    regs->OVT = ICHT_REG_GET(status_reg, ICHT_OVT);
+    regs->MEMERR = ICHT_REG_GET(status_reg, ICHT_MEMERR);
+    regs->PDOVDD = ICHT_REG_GET(status_reg, ICHT_PDOVDD);
+    regs->INITRAM = ICHT_REG_GET(status_reg, ICHT_INITRAM);
+}
+
+void ICHT_decode_status_reg_MSB(uint8_t status_reg,
+                                struct ICHT_Status_Regs_R *regs)
+{
+    regs->LDKSAT2 = ICHT_REG_GET(status_reg, ICHT_LDKSAT2);
+    regs->MONC2 = ICHT_REG_GET(status_reg, ICHT_MONC2);    
+    regs->MAPC2 = ICHT_REG_GET(status_reg, ICHT_MAPC2);   
+    regs->LDKSAT1 = ICHT_REG_GET(status_reg, ICHT_LDKSAT1);
+    regs->MONC1 = ICHT_REG_GET(status_reg, ICHT_MONC1);    
+    regs->MAPC1 = ICHT_REG_GET(status_reg, ICHT_MAPC1);
 }
 
 /** @brief Reads the internal chip temp register
@@ -273,6 +539,8 @@ int8_t ICHT_get_temp(const struct ICHT_config *conf, uint8_t *temp)
     {
         return status;
     }
+    
+    ICHT_decode_temp(temp_reg, temp);
     return status;
 }
 
@@ -286,7 +554,7 @@ void ICHT_decode_temp(uint8_t temp_reg, uint8_t *temp)
 int8_t ICHT_get_ADC(const struct ICHT_config *conf,
                     struct ICHT_ADC_Val_R *regs)
 {
-    uint8_t adc_reg[2];
+    uint8_t adc_reg_LSB, adc_reg_MSB;
     uint8_t addr;
     int8_t status;
     
@@ -303,15 +571,35 @@ int8_t ICHT_get_ADC(const struct ICHT_config *conf,
     addr = (regs->channel == ICHT_CHANNEL_1) ? ICHT_ADC1_BYTE_0_ADDR : 
             ICHT_ADC2_BYTE_0_ADDR;
     
-    status = ICHT_read_register(addr, adc_reg, 2, conf);
+    status = ICHT_read_register(addr, &adc_reg_LSB, 1, conf);
     if (status != ICHT_NO_ERR)
     {
         return status;   
     }
     
-    regs->ADC = (adc_reg[1] << 8) | adc_reg[0];
+    addr++;
+    
+    status = ICHT_read_register(addr, &adc_reg_MSB, 1, conf);
+    if (status != ICHT_NO_ERR)
+    {
+        return status;   
+    }
+    
+    ICHT_decode_ADC_LSB(adc_reg_LSB, regs);
+    ICHT_decode_ADC_MSB(adc_reg_MSB, regs);
     
     return status;
+}
+
+void ICHT_decode_ADC_LSB(uint8_t adc_reg_LSB, struct ICHT_ADC_Val_R *regs)
+{
+    regs->ADC = adc_reg_LSB;
+}
+
+void ICHT_decode_ADC_MSB(uint8_t adc_reg_MSB, struct ICHT_ADC_Val_R *regs)
+{
+    // Assumes LSB was already set
+    regs->ADC = (regs->ADC & 0xFF) | (adc_reg_MSB << 8);
 }
 
 /** @brief Reads the chip revision register
@@ -334,9 +622,14 @@ int8_t ICHT_get_chip_rev(const struct ICHT_config *conf, uint8_t *rev)
         return status;
     }
     
-    *rev = rev_reg;
+    ICHT_decode_chip_rev(rev_reg, rev);
 
     return status;
+}
+
+void ICHT_decode_chip_rev(uint8_t rev_reg, uint8_t *rev)
+{
+    *rev = rev_reg;
 }
 
 /** @brief Reads various ADC variables for a given channel
@@ -367,14 +660,19 @@ int8_t ICHT_get_ADC_Config(const struct ICHT_config *conf,
         return status;   
     }
     
+    ICHT_decode_ADC_Config(adc_config_reg, regs);
+    
+    return status;
+}
+
+void ICHT_decode_ADC_Config(uint8_t adc_config_reg, struct ICHT_ADC_Config *regs)
+{
     regs->source = ICHT_REG_GET(adc_config_reg, ICHT_ADCC);
     regs->enable_offset_compensation = ICHT_REG_GET(adc_config_reg, ICHT_EOC);
     regs->disable_channel = ICHT_REG_GET(adc_config_reg, ICHT_DISC);
     regs->disable_PLR = ICHT_REG_GET(adc_config_reg, ICHT_DISP);
     regs->enable_external_capacitor = ICHT_REG_GET(adc_config_reg, ICHT_ECIE);
     regs->mode = ICHT_REG_GET(adc_config_reg, ICHT_EACC);
-    
-    return status;
 }
 
 /** @brief Writes various ADC variables for a given channel
@@ -540,7 +838,7 @@ int8_t ICHT_set_monitor_resistance(const struct ICHT_config *conf,
 int8_t ICHT_get_Regulator_Config(const struct ICHT_config *conf,
                                  struct ICHT_Regulator_Config *regs)
 {
-    uint8_t reg_config_reg[2];
+    uint8_t reg_config_reg_LSB, reg_config_reg_MSB;
     uint8_t addr;
     int8_t status;
     
@@ -557,16 +855,22 @@ int8_t ICHT_get_Regulator_Config(const struct ICHT_config *conf,
     addr = (regs->channel == ICHT_CHANNEL_1) ? ICHT_REG_1_CONFIG : 
             ICHT_REG_2_CONFIG;
     
-    status = ICHT_read_register(addr, reg_config_reg, 2, conf);
+    status = ICHT_read_register(addr, &reg_config_reg_LSB, 1, conf);
+    if (status != ICHT_NO_ERR)
+    {
+        return status;   
+    }
+    addr++;
+    status = ICHT_read_register(addr, &reg_config_reg_MSB, 1, conf);
     if (status != ICHT_NO_ERR)
     {
         return status;   
     }
     
-    regs->compensation = ICHT_REG_GET(reg_config_reg[0], ICHT_COMP);
-    regs->sat_threshold = ICHT_REG_GET(reg_config_reg[0], ICHT_RLDKS);
-    regs->Vref = (ICHT_REG_GET(reg_config_reg[0], ICHT_REF_BYTE_1) << 8);
-    regs->Vref |= reg_config_reg[1];
+    regs->compensation = ICHT_REG_GET(reg_config_reg_LSB, ICHT_COMP);
+    regs->sat_threshold = ICHT_REG_GET(reg_config_reg_LSB, ICHT_RLDKS);
+    regs->Vref = (ICHT_REG_GET(reg_config_reg_LSB, ICHT_REF_BYTE_1) << 8);
+    regs->Vref |= reg_config_reg_MSB;
     
     return status;
 }
@@ -576,8 +880,9 @@ int8_t ICHT_get_Regulator_Config(const struct ICHT_config *conf,
 int8_t ICHT_set_Regulator_Config(const struct ICHT_config *conf,
                                  struct ICHT_Regulator_Config *regs)
 {
-    uint8_t reg_config_reg[2];
+    uint8_t reg_config_reg_LSB, reg_config_reg_MSB;
     uint8_t addr, ref_byte_0;
+    uint8_t status;
     
     if (regs == NULL)
     {
@@ -595,19 +900,27 @@ int8_t ICHT_set_Regulator_Config(const struct ICHT_config *conf,
     addr = (regs->channel == ICHT_CHANNEL_1) ? ICHT_REG_1_CONFIG : 
             ICHT_REG_2_CONFIG;
     
-    reg_config_reg[0] = 0;
-    reg_config_reg[0] = ICHT_REG_SET(reg_config_reg[0], ICHT_COMP, 
+    reg_config_reg_LSB = 0;
+    reg_config_reg_LSB = ICHT_REG_SET(reg_config_reg_LSB, ICHT_COMP, 
                                      regs->compensation);
-    reg_config_reg[0] = ICHT_REG_SET(reg_config_reg[0], ICHT_RLDKS, 
+    reg_config_reg_LSB = ICHT_REG_SET(reg_config_reg_LSB, ICHT_RLDKS, 
                                      regs->sat_threshold);
     
     ref_byte_0 = ((regs->Vref >> 8) & ICHT_REF_BYTE_1_MASK); 
-    reg_config_reg[0] = ICHT_REG_SET(reg_config_reg[0], ICHT_REF_BYTE_1, 
+    reg_config_reg_LSB = ICHT_REG_SET(reg_config_reg_LSB, ICHT_REF_BYTE_1, 
                                      ref_byte_0);
     
-    reg_config_reg[1] = (regs->Vref & ICHT_REF_BYTE_0_MASK);
+    reg_config_reg_MSB = (regs->Vref & ICHT_REF_BYTE_0_MASK);
     
-    return ICHT_write(addr, reg_config_reg, 2, conf);
+    status = ICHT_write(addr, &reg_config_reg_LSB, 1, conf);
+    if (status != ICHT_NO_ERR)
+    {
+        return status;   
+    }
+    
+    addr++;
+    
+    return ICHT_write(addr, &reg_config_reg_MSB, 1, conf);
 }
 
 /** @brief Reads various the ADSNF and RACC variables for both channels

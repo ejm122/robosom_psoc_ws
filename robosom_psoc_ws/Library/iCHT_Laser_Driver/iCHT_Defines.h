@@ -312,17 +312,7 @@ typedef enum {
 
 /*************************** Data structures *********************************/
 
-struct ICHT_config
-{
-    /** @brief Device ID */
-    uint8_t device_number;
 
-    /** @brief Generic read function pointer */
-    ICHT_i2c_read_fcn read;
-
-    /** @brief Generic write function pointer */
-    ICHT_i2c_write_fcn write;
-};
 
 struct ICHT_Status_Regs_R
 {
@@ -365,11 +355,6 @@ struct ICHT_ADC_Val_R
     uint16_t ADC;                       /* ADCx */
 };
 
-struct ICHT_Chip_Revision_R
-{
-    /** @brief Chip revision mark */
-    uint8_t chip_rev;
-};
 
 struct ICHT_ADC_Config
 {
@@ -488,21 +473,6 @@ struct ICHT_Merge_RDCO_Config
     uint8_t DCO_current_config;         /* RDCO */
 };
 
-struct ICHT_Mode_Config
-{
-    /** @brief Sets the memory in either R-only or R/W mode. 
-               Configuration mode allows setting address 0x10-x1F
-               without changing present configured operational state.
-               
-               Time in configuration mode must be less than 40ms
-               to avoid timeout.
-                
-               Switching to operational mode sets the configuration
-               and changes the registers to read-only mode.
-     */
-    ICHT_MODE_SETTING mode;
-};
-
 struct ICHT_Error_Regs
 {
     /** @brief 1 Triggers an Oscillation error (watchdog timeout) */
@@ -523,17 +493,58 @@ struct ICHT_Error_Regs
     bool MOSCERR;
 };
 
-struct ICHT_all_WR_Regs
+/** Struct that contains full list of iCHT registers */
+struct ICHT_reg_list
 {
-    struct ICHT_ADC_Config ADC_Config_1;
-    struct ICHT_Overcurrent_Threshold ILIM_1;
-    struct ICHT_Internal_Monitor_Resistance RMD_1;
+    struct ICHT_Status_Regs_R STATUS;
+    /** @brief Chip Temperature */
+    uint8_t TEMP_R;
+    struct ICHT_ADC_Val_R ADC1;
+    struct ICHT_ADC_Val_R ADC2;
+    /** @brief Chip revision mark */
+    uint8_t CHIP_REV_R;
+    struct ICHT_ADC_Config ADCCONFIG1;
+    struct ICHT_Overcurrent_Threshold ILIM1;
+    struct ICHT_Internal_Monitor_Resistance RMD1;
+    struct ICHT_Regulator_Config REGCONFIG1;
+    struct ICHT_ADC_Config ADCCONFIG2;
+    struct ICHT_Overcurrent_Threshold ILIM2;
+    struct ICHT_Internal_Monitor_Resistance RMD2;
+    struct ICHT_Regulator_Config REGCONFIG2;
+    struct ICHT_ADSNF_RACC_Config ADSNFRACC;
+    struct ICHT_Merge_RDCO_Config MERGERDCO;
+    /** @brief Sets the memory in either R-only or R/W mode. 
+           Configuration mode allows setting address 0x10-x1F
+           without changing present configured operational state.
+           
+           Time in configuration mode must be less than 40ms
+           to avoid timeout.
+            
+           Switching to operational mode sets the configuration
+           and changes the registers to read-only mode.
+    */
+    ICHT_MODE_SETTING mode;
+    struct ICHT_Error_Regs ERROR;
+};
+
+struct ICHT_config
+{
+    /** @brief Device ID */
+    uint8_t device_number;
+
+    /** @brief Generic read function pointer */
+    ICHT_i2c_read_fcn read;
+
+    /** @brief Generic write function pointer */
+    ICHT_i2c_write_fcn write;
     
-    
+    /** @brief Current state of the sensor, for W/R */
+    struct ICHT_reg_list regs;
 };
 
 /** Function defines */
-int8_t ICHT_init(struct ICHT_config *conf);
+void ICHT_init_structs(struct ICHT_config *conf);
+int8_t ICHT_init_test(struct ICHT_config *conf);
 int8_t ICHT_get_status_regs(const struct ICHT_config *conf, 
                             struct ICHT_Status_Regs_R *regs);
 int8_t ICHT_get_temp(const struct ICHT_config *conf, uint8_t *temp);
@@ -572,6 +583,10 @@ int8_t ICHT_get_error_regs(const struct ICHT_config *conf,
                             struct ICHT_Error_Regs *regs);
 int8_t ICHT_set_error_regs(const struct ICHT_config *conf, 
                             struct ICHT_Error_Regs *regs);
+
+int8_t ICHT_write_all_regs(struct ICHT_config *conf, struct ICHT_reg_list *reg_list);
+int8_t ICHT_read_all_regs(struct ICHT_config *conf, struct ICHT_reg_list *reg_list);
+int8_t ICHT_configure_driver(struct ICHT_config *conf, struct ICHT_reg_list *reg_list);
 
 
 #endif /* ICHT_DEFINES_H_ */
