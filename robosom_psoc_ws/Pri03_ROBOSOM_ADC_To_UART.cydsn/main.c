@@ -164,8 +164,8 @@ void print_adc_via_usbuart(void)
     {
     }
 
-    // sprintf((char *)buffer, "%f\t%f\r\n", (float)sys_clock_cur_ms/1000 + sys_clock_cur_us_in_ms, adc_mv_f32);
-    sprintf((char *)buffer, "0\t%f\r\n", adc_mv_mean - adc_mv_f32);
+    sprintf((char *)buffer, "%f\t%f\r\n", (float)sys_clock_cur_ms/1000 + sys_clock_cur_us_in_ms, adc_mv_f32);
+    //sprintf((char *)buffer, "0\t%f\r\n", adc_mv_mean - adc_mv_f32);
 
     //count = sizeof(buffer);
     /* Send data back to host. */

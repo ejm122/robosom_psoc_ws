@@ -3,7 +3,7 @@
 <!--This file is machine generated and read. It is not intended to be edited by hand.-->
 <!--Due to this, there is no schema for this file.-->
 <CyGuid_2867d519-54d2-4c01-9830-c51cb08bc3dd type_name="CyDesigner.Common.ProjMgmt.Model.CyPrjMgmtWorkspaceSerialize" version="5" xml_contents_version="3" name="robosom_psoc_ws" persistent="robosom_psoc_ws.cywrk" platform="NOT_USED">
-<current_project name=".\Pri02_ROBOSOM_IMU_with_Simple_Laser_Ext_Driver_Test.cydsn\Pri02_ROBOSOM_IMU_with_Simple_Laser_Ext_Driver_Test.cyprj" />
+<current_project name=".\Pri02_ROBOSOM_6.22_SFM3300.cydsn\Pri02_ROBOSOM_6.22_SFM3300.cyprj" />
 <wrkspc_folders />
 <files />
 <projects>
@@ -15,6 +15,19 @@
 <v>.\Pri05_ROBOSOM_Buzzer_Tester.cydsn\Pri05_ROBOSOM_Buzzer_Tester.cyprj</v>
 <v>.\Pri02_ROBOSOM_IMU_with_Simple_Laser.cydsn\Pri02_ROBOSOM_IMU_with_Simple_Laser.cyprj</v>
 <v>.\Pri02_ROBOSOM_IMU_with_Simple_Laser_Ext_Driver_Test.cydsn\Pri02_ROBOSOM_IMU_with_Simple_Laser_Ext_Driver_Test.cyprj</v>
+<v>.\UART_Tut101.cydsn\UART_Tut101.cyprj</v>
+<v>.\NewProject_Tutorial.cydsn\NewProject_Tutorial.cyprj</v>
+<v>.\Tut1_Kit.cydsn\Tut1_Kit.cyprj</v>
+<v>.\Pri02_ROBOSOM_Flow_Sensor_Test.cydsn\Pri02_ROBOSOM_Flow_Sensor_Test.cyprj</v>
+<v>.\Siargo_Flow_Sensor.cydsn\Siargo_Flow_Sensor.cyprj</v>
+<v>.\PSoC4_ADC_with_Differential_PreAmplifier01.cydsn\PSoC4_ADC_with_Differential_PreAmplifier01.cyprj</v>
+<v>.\ADC_Test.cydsn\ADC_Test.cyprj</v>
+<v>.\Pri02_ROBOSOM_Flow_Sensor_Test_Copy.cydsn\Pri02_ROBOSOM_Flow_Sensor_Test_Copy.cyprj</v>
+<v>.\Pri03_ROBOSOM_ADC_To_UART_Copy.cydsn\Pri03_ROBOSOM_ADC_To_UART_Copy.cyprj</v>
+<v>.\Pri02_ROBOSOM_SDP3X.cydsn\Pri02_ROBOSOM_SDP3X.cyprj</v>
+<v>.\Pri02_ROBOSOM_SDP3X_Calibration.cydsn\Pri02_ROBOSOM_SDP3X_Calibration.cyprj</v>
+<v>.\Pri02_ROBOSOM_SFM3300.cydsn\Pri02_ROBOSOM_SFM3300.cyprj</v>
+<v>.\Pri02_ROBOSOM_6.22_SFM3300.cydsn\Pri02_ROBOSOM_6.22_SFM3300.cyprj</v>
 </projects>
 <workspace_id v="43adb24a-68a4-4637-884f-83778c930dfb" />
 <WriteAppVersionLastSavedWith v="4.4.0.80" />
